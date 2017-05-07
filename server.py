@@ -71,8 +71,8 @@ class Server(BaseHTTPRequestHandler):
 
     # handle GET, reply unsupported
     def do_GET(self):
-        if not os.path.exists(self.path):
-            self.send_error(404, message="Not found")
+        if not os.path.exists(self.path[1:] or self.path):  # '/'[1:] -> ''
+            self.send_error(404, message="{}: Not found".format(self.path))
 
         elif self.path == "/favicon.ico":
                 self.send_response(200)
