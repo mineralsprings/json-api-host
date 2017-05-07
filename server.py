@@ -68,9 +68,7 @@ class Server(BaseHTTPRequestHandler):
     # handle GET, reply unsupported
     def do_GET(self):
         self._set_headers(405)
-        self.write_out(
-            "{'error': 'HTTP GET unsupported for now'}", "utf-8"
-        )
+        self.write_out("{'error': 'HTTP GET unsupported for now'}")
 
     # handle POST based on JSON content
     def do_POST(self):
