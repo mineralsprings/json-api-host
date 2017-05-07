@@ -9,7 +9,7 @@ import cgi
 import shutil
 import os
 
-FRONTEND_DOMAIN = ""
+FRONTEND_DOMAIN = "https://mineralsprings.github.io"
 
 JSON_FILES = [
     "menu.json",          # choosable menu entries
@@ -20,6 +20,10 @@ JSON_FILES = [
     "server_config.json"  # possibly unused, misc server config
     # ?
 ]
+
+JSON_DIR = "json/"
+
+JTEMPLATE_DIR = "templates/"
 
 # when a file gets too large to ask python to reasonably open,
 # it should be moved to a new file called filename-<DATE_MOVED>.json.old
@@ -52,12 +56,12 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 class Server(BaseHTTPRequestHandler):
 
-    def write_out(self, data):
+    def write_str(self, data):
         self.wfile.write(bytes(data, "utf-8"))
 
     def _set_headers(self, resp):
         self.send_response(resp)
-        self.send_header("Content-type", "application/json")
+        self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", FRONTEND_DOMAIN)
         # self.send_header("Access-Control-Allow-Methods", "")
         self.end_headers()
@@ -67,8 +71,19 @@ class Server(BaseHTTPRequestHandler):
 
     # handle GET, reply unsupported
     def do_GET(self):
-        self._set_headers(405)
-        self.write_out("{'error': 'HTTP GET unsupported for now'}")
+        if not os.path.exists(self.path):
+            self.send_error(404, message="Not found")
+
+        elif self.path == "/favicon.ico":
+                self.send_response(200)
+                self.send_header("Content-Type", "image/x-icon")
+                self.end_headers()
+                with open("favicon.ico", "rb") as icon:
+                    self.wfile.write(icon.read())
+
+        else:
+            self._set_headers(405)
+            self.write_str("{'error': 'HTTP GET unsupported for now'}")
 
     # handle POST based on JSON content
     def do_POST(self):
@@ -77,7 +92,7 @@ class Server(BaseHTTPRequestHandler):
         # refuse to receive non-json content
         if ctype != "application/json":
             self._set_headers(405)
-            self.write_out(
+            self.write_str(
                 "{'error': 'server doesn't process non-JSON in POST requests'}"
             )
             return
@@ -107,7 +122,7 @@ class Server(BaseHTTPRequestHandler):
 
         # send the message back
         self._set_headers(code)
-        self.write_out(json.dumps(reply))
+        self.write_str(json.dumps(reply))
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -134,26 +149,29 @@ def run(server_class=ThreadedHTTPServer, handler_class=Server, port=8080):
 
 
 def init_json_db():
+    templ_pfix = "templates/template_"
     # look for all the files
     for f in JSON_FILES:
         # if one doesn't exist, we need its template
-        if (not os.path.exists(f)) and os.path.exists("template_" + f):
-            shutil.copyfile("template_" + f, f)
-        elif (not os.path.exists(f)) and (not os.path.exists("template_" + f)):
-            print("no template_" + f + " in the current directory, exiting")
+        if (not os.path.exists(JSON_DIR + f)) and \
+                os.path.exists(templ_pfix + f):
+            shutil.copyfile(templ_pfix + f, JSON_DIR + f)
+
+        elif (not os.path.exists(JSON_DIR + f)) and \
+                (not os.path.exists(templ_pfix + f)):
+            print("no template_" + f + " in ./templates, exiting")
             return False
 
     return True
 
 
-if __name__ == "__main__":
+def main():
     from sys import argv
+    global FRONTEND_DOMAIN
 
     if not init_json_db():
         print("missing template json files, maybe pull or re-clone master")
         exit(3)
-
-    FRONTEND_DOMAIN = "https://mineralsprings.github.io"
 
     if len(argv) == 3:
         FRONTEND_DOMAIN = argv[2]
@@ -163,3 +181,10 @@ if __name__ == "__main__":
         run(port=int(argv[1]))
     else:
         run()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\ncaught CTRL-C, exiting")

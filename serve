@@ -1,0 +1,2 @@
+#!/bin/sh
+echo *.py | entr -dr ./server.py 8080
