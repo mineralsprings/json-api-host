@@ -80,7 +80,6 @@ def validate_gapi_token(token):
 
 
 class Server(BaseHTTPRequestHandler):
-    "docstring"
 
     def write_str(self, data):
         self.wfile.write(bytes(data, "utf-8"))
@@ -121,21 +120,13 @@ class Server(BaseHTTPRequestHandler):
 
         if pathobj.path == "/" and qs == "":
             self.set_headers(405)
-            self.write_str("{'error': 'HTTP GET not fully implemented'}")
+            self.write_json_error("HTTP GET not fully implemented")
 
-        elif (
-            cpath not in JSON_FILES
-            and not os.path.exists(cpath)
-        ):
+        elif cpath not in JSON_FILES and not os.path.exists(cpath):
             self.send_error(404, message="{}: Not found".format(self.path))
 
         elif cpath == "favicon.ico":
-            self.set_headers(
-                200,
-                headers=(
-                    ("Content-Type", "image/x-icon"),
-                )
-            )
+            self.set_headers(200, headers=(("Content-Type", "image/x-icon"),))
             with open(cpath, "rb") as icon:
                 self.wfile.write(icon.read())
 
@@ -180,32 +171,31 @@ class Server(BaseHTTPRequestHandler):
             message = json.loads(msg_str)
         except json.JSONDecodeError as ex:
             self.set_headers(400)
-            self.write_json_error(
-                "can't process POST body as JSON")
+            self.write_json_error("can't process POST body as JSON")
             return
 
         reply = dict()
         code  = 200
         ok    = True
 
-        if "verb" not in message:
-            self.set_headers(400)
-            self.write_json_error("message missing key 'verb'")
-
-        elif "data" not in message:
-            self.set_headers(400)
-            self.write_json_error("message missing key 'data'")
-
         try:
-            response, data, ok = \
-                self.exc_verb(message["verb"], message["data"])
+            verb, data = message["verb"], message["data"]
+        except KeyError as ex:
+            self.set_headers(400)
+            self.write_json_error("POST body missing key 'data' or 'verb'")
+            return
+
+        # should exc_verb throw exceptions?
+        '''try:
         except Exception as ex:
             pass
-        else:
-            reply = {
-                "response": response,
-                "data": data
-            }
+        else:'''
+
+        response, data, ok = self.exc_verb(verb, data)
+        reply = {
+            "response": response,
+            "data": data
+        }
 
         if ok:
             self.set_headers(code)
@@ -220,7 +210,7 @@ class Server(BaseHTTPRequestHandler):
                 (
                     "Access-Control-Allow-Headers",
                     "Content-Type, Access-Control-Allow-Headers, " +
-                    "Content-Length"
+                    "Content-Length, Date, X-Unix-Epoch, Host"
                 ),
             )
         )
