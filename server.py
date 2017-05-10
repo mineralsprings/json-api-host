@@ -18,14 +18,17 @@ import server_helper
 API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
     ".apps.googleusercontent.com"
 
-FRONTEND_DOMAIN = "https://mineralsprings.github.io"
+ALLOW_FRONTEND_DOMAINS = [
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "https://mineralsprings.github.io"
+]
 
 JSON_FILES = [
     "menu.json",           # choosable menu entries
     "orders.json",         # every order ever placed
     "known_users.json",    # all visitors ever (?)
     "limits.json",         # rate limiting and banning
-    "server_config.json",  # possibly unused, misc server config
     "elevated_ids.json"    # accounts that can edit the menu
     # ?
 ]
@@ -81,6 +84,11 @@ def validate_gapi_token(token):
 
 class Server(BaseHTTPRequestHandler):
 
+    def enable_dynamic_cors(self):
+        http_origin = self.headers["origin"]
+        if http_origin in ALLOW_FRONTEND_DOMAINS:
+            self.send_header("Access-Control-Allow-Origin", http_origin)
+
     def write_str(self, data):
         self.wfile.write(bytes(data, "utf-8"))
 
@@ -100,8 +108,7 @@ class Server(BaseHTTPRequestHandler):
             for h in headers:
                 self.send_header(*h)
 
-        # always send this header
-        self.send_header("Access-Control-Allow-Origin", FRONTEND_DOMAIN)
+        self.enable_dynamic_cors()
         self.send_header(
             "Access-Control-Allow-Methods",
             "HEAD,GET,POST,OPTIONS"
@@ -195,13 +202,15 @@ class Server(BaseHTTPRequestHandler):
         response, data, ok = self.exc_verb(verb, data)
         reply = {
             "response": response,
-            "data": data
+            "data": data,
+            "time": message["time"]
         }
 
         if ok:
             self.set_headers(code)
         # else the headers were hopefully already sent
 
+        reply["time"]["conn_finish"] = round(time.time() * 1000)
         self.write_json(reply)
 
     def do_OPTIONS(self):
@@ -210,8 +219,8 @@ class Server(BaseHTTPRequestHandler):
             headers=(
                 (
                     "Access-Control-Allow-Headers",
-                    "Content-Type, Access-Control-Allow-Headers, " +
-                    "Content-Length, Date, X-Unix-Epoch, Host"
+                    "Content-Type, Access-Control-Allow-Headers, Origin, " +
+                    "Content-Length, Date, X-Unix-Epoch, Host, Connection"
                 ),
             )
         )
@@ -233,9 +242,7 @@ class Server(BaseHTTPRequestHandler):
     """ NON-HTTP-METHODS """
 
     def wrap_validate_gapi_key(self, data):
-        rverb = server_helper.verb2verb_reply("gapi_validate")
-
-        retval = [rverb, None, False]
+        retval = [server_helper.verb2verb_reply("gapi_validate"), None, False]
 
         try:
             retval[1:] = (validate_gapi_token(data["gapi_key"]), True)
@@ -251,8 +258,9 @@ class Server(BaseHTTPRequestHandler):
         return retval
 
     def reply_ping(self, data):
+        now = round(time.time() * 1000)
         return "ping_reply", {
-            "pingback": data["ping"] == "hello"
+            "pingback":       data["ping"] == "hello",
         }, True
 
 
@@ -291,7 +299,6 @@ def run(server_class=ThreadedHTTPServer, handler_class=Server, port=8080):
 
 def main():
     from sys import argv
-    global FRONTEND_DOMAIN
 
     print("Starting up...")
 
@@ -299,10 +306,10 @@ def main():
         print("missing template json files, maybe pull or re-clone master")
         exit(3)
 
-    if len(argv) == 3:
-        FRONTEND_DOMAIN = argv[2]
+    '''if len(argv) == 3:
+        FRONTEND_DOMAIN = argv[2]'''
 
-    print("Allowing CORS from frontend on {}".format(FRONTEND_DOMAIN))
+    print("Allowing CORS from frontends on {}".format(ALLOW_FRONTEND_DOMAINS))
     if len(argv) == 2:
         run(port=int(argv[1]))
     else:

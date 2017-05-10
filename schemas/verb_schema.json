@@ -1,25 +1,31 @@
 {
-  "$schema":     "http://json-schema.org/schema#",
-  "id":          "http://catnipcdn.pagekite.me/schema.json",
-
-  "title":       "API Request",
+  "$schema": "http://json-schema.org/schema#",
+  "id": "http://catnipcdn.pagekite.me/schema.json",
+  "title": "API Request",
   "description": "A sentence in a conversation between the client and server",
-  "type":        "object",
-
+  "type": "object",
   "properties": {
     "verb": {
       "description": "one of a few strings requesting a specific action from the server",
-      "type":        "string"
+      "type": "string"
     },
     "data": {
       "description": "payload data for the verb specified by the 'verb' key",
-      "type":        "object",
-      "minItems":    1,
+      "type": "object",
+      "minItems": 1,
       "uniqueItems": true
+    },
+    "time": {
+      "description": "data about UTC unix epochs about the conversation in msec",
+      "type": "object",
+      "properties": {
+        "conn_init": {},
+        "conn_finish": {}
+      }
     }
   },
-
   "required": [
-    "verb", "data"
+    "verb",
+    "data"
   ]
 }

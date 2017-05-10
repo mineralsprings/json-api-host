@@ -16,10 +16,15 @@ IDS_FILE_TEMP = IDS_FILE_BASE +   ".temp"
 
 LOCK_LASTS = 5  # time in minutes for which the lock is valid
 
+ID_KINDS = ["dev", "sau9"]
 
 def get_other_kind(kind):
-    return "dev" if kind == "sau9" else "sau9"
-
+    return {
+        "sau9": "dev",
+        "dev":  "sau9"
+    }.get(
+        kind
+    )
 
 def add_id(obj, kind, name):
     if name in obj[kind]:
@@ -58,7 +63,7 @@ def bad_method(m):
 
 
 def main(method, id_kind, id_name, *junk):
-    if id_kind not in ["devs", "sau9"]:
+    if id_kind not in ID_KINDS:
         raise KeyError("ID type '{}' not in 'devs', 'sau9'"
                        .format(id_kind))
 
@@ -104,13 +109,13 @@ def main(method, id_kind, id_name, *junk):
     with open(IDS_FILE_TEMP, "r") as temp:
         id_obj = json.load(temp)
 
-    print("starting with", repr(id_obj))
+    print("starting with", json.dumps(id_obj, indent=2))
 
     new_obj = call_func(id_obj, id_kind, id_name)
 
-    print("ending with", repr(new_obj))
+    print("ending with  ", json.dumps(id_obj, indent=2))
 
-    assert(new_obj is not None)
+    assert(new_obj is not None and all(x in new_obj for x in ID_KINDS))  # avoid trashing the file
 
     with open(IDS_FILE_TEMP, "w+") as temp:
         json.dump(new_obj, temp)
