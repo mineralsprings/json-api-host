@@ -2,11 +2,10 @@
   "$schema":     "http://json-schema.org/schema#",
   "id":          "http://catnipcdn.pagekite.me/schemas/known_users_schema.json",
 
-  "title":       "A log of all the unique clients we know to have ever requested"
-                 "the backend server with more than a ping",
-  "description": "Describes known users of the service (not just visitors) "
-                 "through cookies, IP addresses, Google account info, or any "
-                 "combination of those.",
+  "title":       "A log of all the unique users we know to have ever requested "
+                 "the backend server",
+  "description": "Describes known users of the service (not visitors) "
+                 "through Google account info",
   "type":        "array",
 
   "properties": {
@@ -26,45 +25,12 @@
             "type": "string",
           },
 
-          "id_data": {
-            "description": "a collection of all the ways we can uniquely identify"
-                           "this user",
+          "gapi_info": {
+            "description": "(can be empty) a GAPI identity object",
             "type": "object",
-
             "properties": {
-              "cookie": {
-                "description": "(can be empty) unique random number stored in the"
-                               "user's browser -- unreliable for many reasons",
-                "type": "string"
-              },
-
-              "gapi_info": {
-                "description": "(can be empty) a GAPI identity object",
-                "type": "object",
-                "properties": {
-                  "some": "a lot actually"
-                }
-              },
-
-              "ip_addr": {
-                "description": "(can be empty) string of the user's IPv4 addr",
-                "type": "string",
-              },
-
-              "ua_hash": {
-                "description": "(can be empty) hash of all the user-agent info"
-                               "we can find",
-                "type": "string",
-              }
-
-            },
-
-            "required": [
-              "cookie",
-              "gapi_info",
-              "ip_addr",
-              "ua_hash",
-            ]
+              "some": "a lot actually"
+            }
           },
 
           "time_first_conn": {
@@ -108,9 +74,10 @@
           }
 
         },
+
         "required": [
           "unique_id",
-          "id_data",
+          "gapi_info",
           "time_first_conn",
           "time_last_conn",
           "count_conns",
@@ -126,5 +93,5 @@
 
   },
 
-  "required": [ ]
+  "required": [ "all_users" ]
 }

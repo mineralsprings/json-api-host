@@ -3,13 +3,8 @@
     {
       "unique_id": "sdhgjfhsdjkf",
 
-      "id_data": {
-        "cookie":  "asdf",
-        "gapi_info": {
-          "google identity object goes here": "?"
-        },
-        "ip_addr": "23.66.211.94",
-        "ua_hash": "vaheaoo8vyv29875"
+      "gapi_info": {
+        "google identity object goes here": "?"
       },
 
       "time_first_conn":  1247563845,
@@ -19,6 +14,8 @@
       "count_orders":     3,
       "count_menu_upd8s": 2,
       "count_signins":    1,
+      "count_limits":     1,
+      "count_bans":       2,
 
       "is_rate_limited":  false,
       "is_banned":        false,

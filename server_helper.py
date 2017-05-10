@@ -4,12 +4,12 @@ import os
 
 def get_elevated_ids():
     el_ids = dict()
+    # no race condition -- resource is read-only
     with open(os.path.join("json", "elevated_ids.json"), "r") as idfile:
         fc = idfile.read()
         # print(fc)
-        el_ids = json.loads(fc)
 
-    return el_ids
+    return json.loads(fc)
 
 
 def is_elevated_id(email, hd=None):
@@ -26,3 +26,11 @@ def is_elevated_id(email, hd=None):
             and (hd is not None and hd == "sau9.org")
         )
     )
+
+
+def verb2verb_reply(s):
+    return s + "_reply"
+
+
+def string2error_json(s):
+    return {"error": repr(s)}

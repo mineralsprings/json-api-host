@@ -88,7 +88,7 @@ class Server(BaseHTTPRequestHandler):
         self.write_str(json.dumps(obj))
 
     def write_json_error(self, err):
-        self.write_json(err)
+        self.write_json( {"error": err} )
 
     def set_headers(self, resp, headers=(), msg=None):
         self.send_response(resp, message=msg)
@@ -233,16 +233,22 @@ class Server(BaseHTTPRequestHandler):
     """ NON-HTTP-METHODS """
 
     def wrap_validate_gapi_key(self, data):
+        rverb = server_helper.verb2verb_reply("gapi_validate")
+
+        retval = [rverb, None, False]
+
         try:
-            cl_info = validate_gapi_token(data["gapi_key"])
+            retval[1:] = (validate_gapi_token(data["gapi_key"]), True)
+
         except client.AccessTokenCredentialsError as e:
             self.set_headers(200)
-            return "gapi_validated", {"error": repr(e)}, False
+            retval[1:] = (server_helper.obj2error_json(e), False)
+
         except crypt.AppIdentityError as e:
             self.set_headers(200)
-            return "gapi_validated", {"error": repr(e)}, False
-        else:
-            return "gapi_validated", cl_info, True
+            retval[1:] = (server_helper.obj2error_json(e), False)
+
+        return retval
 
     def reply_ping(self, data):
         return "ping_reply", {

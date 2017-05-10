@@ -1,1 +1,38 @@
+{
+  "limited_users": [
+    {
+      "gapi_info": {
+        "key": "val"
+      },
 
+      "expires":   5784652433,
+      "restraints": {
+        "orders_per_day": 2,
+        "order_maxitems": 3,
+        "order_maxvalue": 10,
+      },
+
+      "placed_by": {
+        "automated": true
+      }
+    }
+  ],
+
+  "banned_users": [
+    {
+      "gapi_info": {
+        "key": "val"
+      },
+
+      "expires":     4573459234,
+      "banned_svcs": [
+        "view", "order"
+      ],
+
+      "placed_by": {
+        "automated": false,
+        "gapi_info": "val"
+      }
+    }
+  ]
+}
