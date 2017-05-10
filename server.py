@@ -21,12 +21,12 @@ API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
 FRONTEND_DOMAIN = "https://mineralsprings.github.io"
 
 JSON_FILES = [
-    "menu.json",          # choosable menu entries
-    "orders.json",        # every order ever placed
-    "known_users.json",   # all visitors ever (?)
-    "limits.json",        # rate limiting and banning
+    "menu.json",           # choosable menu entries
+    "orders.json",         # every order ever placed
+    "known_users.json",    # all visitors ever (?)
+    "limits.json",         # rate limiting and banning
     "server_config.json",  # possibly unused, misc server config
-    "elevated_ids.json"   # accounts that can edit the menu
+    "elevated_ids.json"    # accounts that can edit the menu
     # ?
 ]
 
@@ -135,11 +135,12 @@ class Server(BaseHTTPRequestHandler):
             with open(cpath, "r") as scma:
                 self.write_str(scma.read())
 
-        elif cpath in JSON_FILES:
-            if qs == "":
-                self.set_headers(200)
-                with open(os.path.join("json", cpath), "r") as jf:
-                    self.write_str(jf.read())
+        # no browsing the JSON files for you!
+        # elif cpath in JSON_FILES:
+        #     if qs == "":
+        #         self.set_headers(200)
+        #         with open(os.path.join("json", cpath), "r") as jf:
+        #             self.write_str(jf.read())
 
         else:
             self.send_error(404)

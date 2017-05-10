@@ -1,0 +1,130 @@
+{
+  "$schema":     "http://json-schema.org/schema#",
+  "id":          "http://catnipcdn.pagekite.me/schemas/known_users_schema.json",
+
+  "title":       "A log of all the unique clients we know to have ever requested"
+                 "the backend server with more than a ping",
+  "description": "Describes known users of the service (not just visitors) "
+                 "through cookies, IP addresses, Google account info, or any "
+                 "combination of those.",
+  "type":        "array",
+
+  "properties": {
+
+    "all_users": {
+      "description": "the top-level list of user objects.",
+      "type":        "array",
+
+      "items": {
+
+        "title":      "user",
+        "type":       "object",
+        "properties": {
+
+          "unique_id": {
+            "description": "unique 'name' for the user identified here",
+            "type": "string",
+          },
+
+          "id_data": {
+            "description": "a collection of all the ways we can uniquely identify"
+                           "this user",
+            "type": "object",
+
+            "properties": {
+              "cookie": {
+                "description": "(can be empty) unique random number stored in the"
+                               "user's browser -- unreliable for many reasons",
+                "type": "string"
+              },
+
+              "gapi_info": {
+                "description": "(can be empty) a GAPI identity object",
+                "type": "object",
+                "properties": {
+                  "some": "a lot actually"
+                }
+              },
+
+              "ip_addr": {
+                "description": "(can be empty) string of the user's IPv4 addr",
+                "type": "string",
+              },
+
+              "ua_hash": {
+                "description": "(can be empty) hash of all the user-agent info"
+                               "we can find",
+                "type": "string",
+              }
+
+            },
+
+            "required": [
+              "cookie",
+              "gapi_info",
+              "ip_addr",
+              "ua_hash",
+            ]
+          },
+
+          "time_first_conn": {
+            "description": "time of the user's first known connection",
+            "type": "number"
+          },
+
+          "time_last_conn": {
+            "description": "time of the user's last known connection",
+            "type": "number"
+          },
+
+          "count_conns":      {
+            "description": "total number of connections to the API",
+            "type": "number"
+          },
+
+          "count_orders":     {
+            "description": "total number of orders ever placed",
+            "type": "number"
+          },
+
+          "count_menu_upd8s": {
+            "description": "total number of times the user updated the menu",
+            "type": "number"
+          },
+
+          "count_signins":    {
+            "description": "total number of GAPI signins by the user",
+            "type": "number"
+          },
+
+          "is_rate_limited": {
+            "description": "whether user is rate-limited",
+            "type": "boolean"
+          },
+
+          "is_banned":       {
+            "description": "whether user is banned",
+            "type": "boolean"
+          }
+
+        },
+        "required": [
+          "unique_id",
+          "id_data",
+          "time_first_conn",
+          "time_last_conn",
+          "count_conns",
+          "count_orders",
+          "count_menu_upd8s",
+          "count_signins",
+          "is_rate_limited",
+          "is_banned"
+        ]
+
+      }
+    }
+
+  },
+
+  "required": [ ]
+}

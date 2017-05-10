@@ -1,0 +1,25 @@
+{
+  "$schema":     "http://json-schema.org/schema#",
+  "id":          "http://catnipcdn.pagekite.me/schema.json",
+
+  "title":       "API Request",
+  "description": "A sentence in a conversation between the client and server",
+  "type":        "object",
+
+  "properties": {
+    "verb": {
+      "description": "one of a few strings requesting a specific action from the server",
+      "type":        "string"
+    },
+    "data": {
+      "description": "payload data for the verb specified by the 'verb' key",
+      "type":        "object",
+      "minItems":    1,
+      "uniqueItems": true
+    }
+  },
+
+  "required": [
+    "verb", "data"
+  ]
+}

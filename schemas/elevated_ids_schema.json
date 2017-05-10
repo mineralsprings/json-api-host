@@ -1,0 +1,29 @@
+{
+  "$schema":     "http://json-schema.org/schema#",
+  "id":          "http://catnipcdn.pagekite.me/schemas/elevated_ids_schema.json",
+
+  "title":       "Elevated Google IDs",
+  "description": "Enumerates two kinds of Google accounts with the ability to "
+                 "make changes to menu.json and orders.json from API calls",
+  "type":        "object",
+
+  "properties": {
+    "sau9": {
+      "description": "A list of sau9.org-affiliated GMail usernames",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "devs": {
+      "description": "A list of project developers' GMail usernames",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+
+  "required": [ "sau9", "devs" ]
+}

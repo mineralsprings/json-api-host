@@ -1,1 +1,27 @@
+{
+  "all_users": [
+    {
+      "unique_id": "sdhgjfhsdjkf",
 
+      "id_data": {
+        "cookie":  "asdf",
+        "gapi_info": {
+          "google identity object goes here": "?"
+        },
+        "ip_addr": "23.66.211.94",
+        "ua_hash": "vaheaoo8vyv29875"
+      },
+
+      "time_first_conn":  1247563845,
+      "time_last_conn":   1437834823,
+
+      "count_conns":      5,
+      "count_orders":     3,
+      "count_menu_upd8s": 2,
+      "count_signins":    1,
+
+      "is_rate_limited":  false,
+      "is_banned":        false,
+    }
+  ]
+}
