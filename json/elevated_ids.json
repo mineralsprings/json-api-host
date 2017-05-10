@@ -1,12 +1,1 @@
-{
-  "sau9": [
-    "1742119",
-    "1858067",
-    "d_richardi",
-    "v_schrader"
-  ],
-
-  "devs": [
-    "thebinaryminer"
-  ]
-}
+{"devs": ["thebinaryminer"], "sau9": ["1742119", "1858067", "d_richardi", "v_schrader"]}
