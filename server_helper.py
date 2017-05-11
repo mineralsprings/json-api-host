@@ -1,15 +1,12 @@
+#!/usr/bin/env python3
+import sys
 import json
+import optify as minify
 import os
 
 
 def get_elevated_ids():
-    el_ids = dict()
-    # no race condition -- resource is read-only
-    with open(os.path.join("json", "elevated_ids.json"), "r") as idfile:
-        fc = idfile.read()
-        # print(fc)
-
-    return json.loads(fc)
+    return load_json_file(os.path.join("json", "elevated_ids.json"))
 
 
 def is_elevated_id(email, hd=None):
@@ -28,9 +25,19 @@ def is_elevated_id(email, hd=None):
     )
 
 
+def load_json_file(filename):
+    with open(filename, "r") as jfile:
+        obj = minify.json_minify(jfile.read())
+    print(obj)
+    return json.loads(obj)
+
+
 def verb2verb_reply(s):
     return s + "_reply"
 
 
 def string2error_json(s):
     return {"error": repr(s)}
+
+if __name__ == '__main__':
+    print(load_json_file(sys.argv[1]))

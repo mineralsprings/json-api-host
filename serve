@@ -1,3 +1,7 @@
 #!/bin/bash
-./git-autopull-daemon &
+
+trap 'kill "$pid"' EXIT
+
+bash ./git-autopull &
+pid=$!
 ls --color=never ./*.py "serve" | entr -r ./server.py 8080 && echo "file changed, stopping and restarting..."

@@ -2,10 +2,8 @@
   "$schema":     "http://json-schema.org/schema#",
   "id":          "http://catnipcdn.pagekite.me/schemas/known_users_schema.json",
 
-  "title":       "A log of all the unique users we know to have ever requested "
-                 "the backend server",
-  "description": "Describes known users of the service (not visitors) "
-                 "through Google account info",
+  "title":       "A log of all the unique users we know to have ever requested the backend server",
+  "description": "Describes known users of the service (not visitors) through Google account info",
   "type":        "array",
 
   "properties": {
@@ -19,25 +17,25 @@
         "title":      "user",
         "type":       "object",
         "properties": {
-
+          /* comment */
           "unique_id": {
             "description": "unique 'name' for the user identified here",
-            "type": "string",
+            "type": "string"
           },
-
+          /* comment sdafjgsdfk hsldf jsdfhf s d*/
           "gapi_info": {
-            "description": "(can be empty) a GAPI identity object",
+            "description": "a GAPI identity object",
             "type": "object",
             "properties": {
               "some": "a lot actually"
             }
           },
-
+          // adasd asfyuyaweiori wbyb riw
           "time_first_conn": {
             "description": "time of the user's first known connection",
             "type": "number"
           },
-
+          /*adahdfgajksf*/
           "time_last_conn": {
             "description": "time of the user's last known connection",
             "type": "number"

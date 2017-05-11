@@ -14,6 +14,7 @@ import shutil
 import os
 import urllib
 import server_helper
+import minify
 
 API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
     ".apps.googleusercontent.com"
@@ -113,6 +114,7 @@ class Server(BaseHTTPRequestHandler):
             "Access-Control-Allow-Methods",
             "HEAD,GET,POST,OPTIONS"
         )
+        self.send_header("Accept", "application/json")
         self.end_headers()
 
     def do_HEAD(self):
@@ -139,7 +141,7 @@ class Server(BaseHTTPRequestHandler):
 
         elif cpath == "schema.json":
             self.set_headers(200)
-            with open(cpath, "r") as scma:
+            with open(os.path.join("schemas", cpath), "r") as scma:
                 self.write_str(scma.read())
 
         # no browsing the JSON files for you!
@@ -174,9 +176,10 @@ class Server(BaseHTTPRequestHandler):
         msg_bytes = self.rfile.read(length)
 
         msg_str = str(msg_bytes, "utf-8")
+        minmsg  = minify.json_minify(msg_str) 
 
         try:
-            message = json.loads(msg_str)
+            message = json.loads(minmsg)
         except json.JSONDecodeError as ex:
             self.set_headers(400)
             self.write_json_error("can't process POST body as JSON")
