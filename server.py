@@ -309,7 +309,11 @@ def main():
     '''if len(argv) == 3:
         FRONTEND_DOMAIN = argv[2]'''
 
-    print("Allowing CORS from frontends on {}".format(ALLOW_FRONTEND_DOMAINS))
+    print(
+        ("Allowing CORS from frontends on " +
+            len(ALLOW_FRONTEND_DOMAINS) * "{}")
+        .format(ALLOW_FRONTEND_DOMAINS)
+    )
     if len(argv) == 2:
         run(port=int(argv[1]))
     else:
@@ -319,6 +323,7 @@ def main():
 def sigterm_handler(_signo, _stack_frame):
     print("Shutting down...\n")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sigterm_handler)
