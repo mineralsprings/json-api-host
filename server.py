@@ -176,7 +176,7 @@ class Server(BaseHTTPRequestHandler):
         msg_bytes = self.rfile.read(length)
 
         msg_str = str(msg_bytes, "utf-8")
-        minmsg  = minify.json_minify(msg_str) 
+        minmsg  = minify.json_minify(msg_str)
 
         try:
             message = json.loads(minmsg)
