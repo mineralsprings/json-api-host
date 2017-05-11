@@ -311,8 +311,8 @@ def main():
 
     print(
         ("Allowing CORS from frontends on " +
-            len(ALLOW_FRONTEND_DOMAINS) * "{}")
-        .format(ALLOW_FRONTEND_DOMAINS)
+            len(ALLOW_FRONTEND_DOMAINS) * "{} ")
+        .format(*ALLOW_FRONTEND_DOMAINS)
     )
     if len(argv) == 2:
         run(port=int(argv[1]))
