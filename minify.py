@@ -17,7 +17,13 @@ import re
 import io
 
 
+def concat_adjacent_strs(string):
+    adjstrs = re.compile(r'\"([^\"\\]*(?:\\.[^\"\\]*)*)\"\s*\"([^\"\\]*(?:\\.[^\"\\]*)*)\"')  # noqa
+    return re.sub(adjstrs, r'"\1\2"', string)
+
+
 def json_minify(string, strip_space=True):
+    string = concat_adjacent_strs(string)
     tokenizer = re.compile('"|(/\*)|(\*/)|(//)|\n|\r')
     end_slashes_re = re.compile(r'(\\)*$')
 
