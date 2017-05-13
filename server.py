@@ -1,93 +1,24 @@
 #!/usr/bin/env python3
 # adapted from https://gist.github.com/nitaku/10d0662536f37a087e1b
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from oauth2client import client, crypt
 from socketserver import ThreadingMixIn
-import signal
-import time
-import traceback
-import sys
-import socketserver
+from os import path
+import api_helper
 import json
-import cgi
-import shutil
-import os
-import urllib
-import server_helper
 import minify
-
-API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
-    ".apps.googleusercontent.com"
-
-ALLOW_FRONTEND_DOMAINS = [
-    "http://localhost:8080",
-    "http://localhost:3000",
-    "https://mineralsprings.github.io"
-]
-
-JSON_FILES = [
-    "menu.json",           # choosable menu entries
-    "orders.json",         # every order ever placed
-    "known_users.json",    # all visitors ever (?)
-    "limits.json",         # rate limiting and banning
-    "elevated_ids.json"    # accounts that can edit the menu
-    # ?
-]
-
-JSON_DIR = "json"
-
-JTEMPLATE_DIR = "templates"
-
-# when a file gets too large to ask python to reasonably open,
-# it should be moved to a new file called filename-<DATE_MOVED>.json.old
-
-
-def validate_gapi_token(token):
-
-    idinfo = client.verify_id_token(token, API_CLIENT_ID)
-    now = time.time()
-
-    # print("idinfo:", idinfo)
-    if idinfo["iss"] not in [
-        "accounts.google.com", "https://accounts.google.com"
-    ]:
-        raise crypt.AppIdentityError(
-            "Token has wrong issuer: {}"
-            .format(idinfo["iss"])
-        )
-
-    elif ( idinfo["iat"] >= now ) or ( idinfo["exp"] <= now ):
-        raise client.AccessTokenCredentialsError(
-            "Token has expired or invalid timestamps: issued-at {} expires {}"
-            .format(idinfo["iat"], idinfo["exp"])
-        )
-
-    elif idinfo["aud"] != API_CLIENT_ID:
-        raise crypt.AppIdentityError("Token has wrong API token id")
-
-    hd = None
-    if "hd" in idinfo:
-        hd = idinfo["hd"]
-
-    idinfo["is_elevated"] = \
-        server_helper.is_elevated_id(idinfo["email"], hd=hd)
-
-    return idinfo
-    # Or, if multiple clients access the backend server:
-    # idinfo = client.verify_id_token(token, None)
-    # if idinfo['aud'] not in [CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]:
-    #    raise crypt.AppIdentityError("Unrecognized client.")
-
-    # If auth request is from a G Suite domain:
-    # if idinfo['hd'] != GSUITE_DOMAIN_NAME:
-    #    raise crypt.AppIdentityError("Wrong hosted domain.")
+import os
+import signal
+import sys
+# import traceback
+import time as tm
+import urllib
 
 
 class Server(BaseHTTPRequestHandler):
 
     def enable_dynamic_cors(self):
         http_origin = self.headers["origin"]
-        if http_origin in ALLOW_FRONTEND_DOMAINS:
+        if http_origin in api_helper.ALLOW_FRONTEND_DOMAINS:
             self.send_header("Access-Control-Allow-Origin", http_origin)
 
     def write_str(self, data):
@@ -131,7 +62,7 @@ class Server(BaseHTTPRequestHandler):
             self.set_headers(405)
             self.write_json_error("HTTP GET not fully implemented")
 
-        elif cpath not in JSON_FILES and not os.path.exists(cpath):
+        elif cpath not in api_helper.JSON_FILES and not os.path.exists(cpath):
             self.send_error(404, message="{}: Not found".format(self.path))
 
         elif cpath == "favicon.ico":
@@ -141,14 +72,14 @@ class Server(BaseHTTPRequestHandler):
 
         elif cpath == "schema.json":
             self.set_headers(200)
-            with open(os.path.join("schemas", cpath), "r") as scma:
+            with open(path.join("schemas", cpath), "r") as scma:
                 self.write_str(scma.read())
 
         # no browsing the JSON files for you!
         # elif cpath in JSON_FILES:
         #     if qs == "":
         #         self.set_headers(200)
-        #         with open(os.path.join("json", cpath), "r") as jf:
+        #         with open(path.join("json", cpath), "r") as jf:
         #             self.write_str(jf.read())
 
         else:
@@ -156,7 +87,7 @@ class Server(BaseHTTPRequestHandler):
 
     # handle POST based on JSON content
     def do_POST(self):
-        pathobj = urllib.parse.urlparse(self.path)
+        # pathobj = urllib.parse.urlparse(self.path)
         # print(pathobj)
 
         # refuse to receive non-json content
@@ -190,18 +121,18 @@ class Server(BaseHTTPRequestHandler):
         ok    = True
 
         try:
-            verb, data = message["verb"], message["data"]
+            verb, data, time = (
+                message[key] for key in ["verb", "data", "time"]
+            )
+
         except KeyError as ex:
             self.set_headers(400)
-            self.write_json_error("POST body missing key 'data' or 'verb'")
+            self.write_json_error(
+                "POST body missing key 'data', 'verb' or 'time'"
+            )
             return
 
         # should exc_verb throw exceptions?
-        '''try:
-        except Exception as ex:
-            pass
-        else:'''
-
         response, data, ok = self.exc_verb(verb, data)
         reply = {
             "response": response,
@@ -213,7 +144,7 @@ class Server(BaseHTTPRequestHandler):
             self.set_headers(code)
         # else the headers were hopefully already sent
 
-        reply["time"]["conn_finish"] = round(time.time() * 1000)
+        reply["time"]["conn_server"] = round(tm.time() * 1000)
         self.write_json(reply)
 
     def do_OPTIONS(self):
@@ -230,8 +161,9 @@ class Server(BaseHTTPRequestHandler):
 
     def exc_verb(self, verbstr, data):
         return {
-            "gapi_validate": self.wrap_validate_gapi_key,
-            "ping":          self.reply_ping
+            "gapi_validate": api_helper.wrap_validate_gapi_key,
+            "ping":          api_helper.reply_ping,
+            "gen_anticsrf":  api_helper.generate_anticsrf_token,
         }.get(
             verbstr,
             lambda v:
@@ -244,51 +176,9 @@ class Server(BaseHTTPRequestHandler):
 
     """ NON-HTTP-METHODS """
 
-    def wrap_validate_gapi_key(self, data):
-        retval = [server_helper.verb2verb_reply("gapi_validate"), None, False]
-
-        try:
-            retval[1:] = (validate_gapi_token(data["gapi_key"]), True)
-
-        except client.AccessTokenCredentialsError as e:
-            self.set_headers(200)
-            retval[1:] = (server_helper.obj2error_json(e), False)
-
-        except crypt.AppIdentityError as e:
-            self.set_headers(200)
-            retval[1:] = (server_helper.obj2error_json(e), False)
-
-        return retval
-
-    def reply_ping(self, data):
-        now = round(time.time() * 1000)
-        return "ping_reply", {
-            "pingback":       data["ping"] == "hello",
-        }, True
-
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
-
-
-def init_json_db():
-    templ_pfix = "templates/template_"
-    # look for all the files
-    for f in JSON_FILES:
-        # if one doesn't exist, we need its template
-        if (not os.path.exists(os.path.join(JSON_DIR, f))) and \
-                os.path.exists(os.path.join(templ_pfix, f)):
-            shutil.copyfile(
-                os.path.join(templ_pfix, f),
-                os.path.join(JSON_DIR, f)
-            )
-
-        elif (not os.path.exists(os.path.join(JSON_DIR, f))) and \
-                (not os.path.exists(os.path.join(templ_pfix, f))):
-            print("no template_" + f + " in ./templates, exiting")
-            return False
-
-    return True
 
 
 def run(server_class=ThreadedHTTPServer, handler_class=Server, port=8080):
@@ -305,17 +195,17 @@ def main():
 
     print("Starting up...")
 
-    if not init_json_db():
-        print("missing template json files, maybe pull or re-clone master")
-        exit(3)
-
+    '''    if not init_json_db():
+            print("missing template json files, maybe pull or re-clone master")
+            exit(3)
+    '''
     '''if len(argv) == 3:
         FRONTEND_DOMAIN = argv[2]'''
 
     print(
         ("Allowing CORS from frontends on " +
-            len(ALLOW_FRONTEND_DOMAINS) * "{} ")
-        .format(*ALLOW_FRONTEND_DOMAINS)
+            len(api_helper.ALLOW_FRONTEND_DOMAINS) * "{} ")
+        .format(*api_helper.ALLOW_FRONTEND_DOMAINS)
     )
     if len(argv) == 2:
         run(port=int(argv[1]))
