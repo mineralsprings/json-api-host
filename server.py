@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 # from os import path
 import api_helper
+import json_helper
 import json
 import minify
 import os
@@ -13,8 +14,12 @@ import traceback
 import time as tm
 import urllib
 
+REQUIRE_ANTICSRF_POST = False
+
 
 class Server(BaseHTTPRequestHandler):
+
+    protocol_version = "HTTP/1.1"
 
     def enable_dynamic_cors(self):
         http_origin = self.headers["origin"]
@@ -30,7 +35,7 @@ class Server(BaseHTTPRequestHandler):
     def write_json_error(self, err, expl=""):
         self.write_json( {"error": err, "explanation": expl} )
 
-    def set_headers(self, resp, headers=(), msg=None):
+    def set_headers(self, resp, headers=(), msg=None, close=True):
         self.send_response(resp, message=msg)
 
         if not headers:
@@ -46,6 +51,12 @@ class Server(BaseHTTPRequestHandler):
             "HEAD,GET,POST,OPTIONS"
         )
         self.send_header("Accept", "application/json")
+
+        if close:
+            self.send_header("Connection", "Close")
+        else:
+            self.send_header("Connection: keep-alive")
+
         self.end_headers()
 
     def do_HEAD(self):
@@ -62,7 +73,7 @@ class Server(BaseHTTPRequestHandler):
             self.set_headers(405)
             self.write_json_error("HTTP GET not fully implemented")
 
-        elif cpath not in api_helper.JSON_FILES and not os.path.exists(cpath):
+        elif cpath not in json_helper.JSON_FILES and not os.path.exists(cpath):
             self.send_error(404, message="{}: Not found".format(self.path))
 
         elif cpath == "favicon.ico":
@@ -70,6 +81,8 @@ class Server(BaseHTTPRequestHandler):
             with open(cpath, "rb") as icon:
                 self.wfile.write(icon.read())
 
+        else:
+            self.send_error(404)
         # TODO: needs a rewrite
         # elif cpath == "schema.json":
         #     self.set_headers(200)
@@ -82,9 +95,6 @@ class Server(BaseHTTPRequestHandler):
         #         self.set_headers(200)
         #         with open(path.join("json", cpath), "r") as jf:
         #             self.write_str(jf.read())
-
-        else:
-            self.send_error(404)
 
     # handle POST based on JSON content
     def do_POST(self):
@@ -120,10 +130,6 @@ class Server(BaseHTTPRequestHandler):
             )
             return
 
-        reply = dict()
-        code  = 200
-        ok    = True
-
         try:
             verb, data, time = (
                 message[key] for key in ["verb", "data", "time"]
@@ -136,10 +142,26 @@ class Server(BaseHTTPRequestHandler):
             )
             return
 
+        if REQUIRE_ANTICSRF_POST and (
+            verb != "gen_anticsrf" and "anticsrf" not in data
+        ):
+            self.set_headers(403)
+            self.write_json_error(
+                "JSON body missing key 'anticsrf' but the server is configured"
+                + " to require such a token",
+                expl="you should ask the server for one first"
+            )
+            return
+
+        reply = dict()
+        code  = 200
+        ok    = True
+
+
         # should exc_verb throw exceptions?
-        response, data, ok = self.exc_verb(verb, data)
+        data, ok = self.exc_verb(verb, data)
         reply = {
-            "response": response,
+            "response": api_helper.verb_reply(verb),
             "data": data,
             "time": message["time"]
         }
@@ -175,10 +197,10 @@ class Server(BaseHTTPRequestHandler):
         ))
         # print(list(filattrs))
         funcs       = (eval("api_helper.{}".format(fn)) for fn in filattrs)
-        verbnames   = ("".join(fn.split("_")[1:]) for fn in filattrs)
+        verbnames   = ("_".join(fn.split("_")[1:]) for fn in filattrs)
 
         verb_func_dict = dict(zip(verbnames, funcs))
-
+        # print(verb_func_dict)
         return verb_func_dict.get(
             verbstr,
             lambda v:
@@ -188,7 +210,7 @@ class Server(BaseHTTPRequestHandler):
     def internal_error(self, ctx):
         self.set_headers(500, msg=ctx)
         self.write_json_error(ctx)
-        return "", {}, -1
+        return {}, -1
 
     """ NON-HTTP-METHODS """
 
@@ -217,6 +239,12 @@ def main():
     '''
     '''if len(argv) == 3:
         FRONTEND_DOMAIN = argv[2]'''
+
+    if not REQUIRE_ANTICSRF_POST:
+        print(
+            "WARNING: Not requiring anti-CSRF tokens in API requests!" +
+            " I hope this is a developer instance..."
+        )
 
     print(
         ("Allowing CORS from frontends on " +

@@ -5,9 +5,7 @@
 from os import path
 import json
 import jsonschema
-import minify
-import api_helper
-
+# import minify
 
 default_objs = {
     "elevated_ids": {
@@ -39,10 +37,48 @@ default_objs = {
     }
 }
 
+JSON_FILES = [
+    "menu",           # choosable menu entries
+    "orders",         # every order ever placed
+    "known_users",    # all visitors ever (?)
+    "limits",         # rate limiting and banning
+    "elevated_ids"    # accounts that can edit the menu
+    # ?
+]
+
+JSON_DIR = "json"
+
+# when a file gets too large to ask python to reasonably open,
+# it should be moved to a new file called filename-<DATE_MOVED>.json.old
+
+
+def get_elevated_ids():
+    return load_json_file(path.join(JSON_DIR, "elevated_ids.json"))
+
+
+def is_elevated_id(email, hd=None):
+    idn, dom = email.split("@")
+    el_ids  = get_elevated_ids()
+    # print(repr(el_ids["devs"]) + "\n", id, dom)
+
+    return (
+        (
+            idn in el_ids["devs"] and (dom == "gmail.com")
+        )
+        or (
+            (idn in el_ids["sau9"] and (dom == "sau9.org"))
+            and (hd is not None and hd == "sau9.org")
+        )
+    )
+
+
+def sort_array_by_id(array, sid="sort_id"):
+    return sorted(array, key=sid)
+
 
 def write_out_templates():
     for fname, obj in default_objs:
-        apath = path.join(api_helper.JSON_DIR, fname + ".json")
+        apath = path.join(JSON_DIR, fname + ".json")
         if not path.exist(apath):
             with open(apath, "w+") as of:
                 json.dump(obj, of)
@@ -55,7 +91,7 @@ def validate_json_dir():
                 "r"
         ) as fscma:
             with open(
-                path.join(api_helper.JSON_DIR, name + ".json"),
+                path.join(JSON_DIR, name + ".json"),
                 "r"
             ) as fjson:
                     scma, vjson = (
@@ -66,11 +102,13 @@ def validate_json_dir():
     print("All JSON and schemas OK, hooray!")
 
 
-def load_json_file(filename):
-    with open(filename, "r") as jfile:
-        obj = minify.json_minify(jfile.read())
-    print(obj)
-    return json.loads(obj)
+def load_json_db(filename):
+    with open(path.join("json", filename) + ".json", "r") as jfile:
+        return json.load(jfile)
+    # with open(filename, "r") as jfile:
+    #     obj = minify.json_minify(jfile.read())
+    # print(obj)
+    # return json.loads(obj)
 
 
 if __name__ == '__main__':

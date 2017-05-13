@@ -3,7 +3,7 @@ from os import path
 import binascii
 import json_helper
 import os
-import sys
+# import sys
 import gapi_auth
 
 API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
@@ -26,11 +26,9 @@ JSON_FILES = [
 
 JSON_DIR = "json"
 
-JTEMPLATE_DIR = "templates"
-
-
 # when a file gets too large to ask python to reasonably open,
 # it should be moved to a new file called filename-<DATE_MOVED>.json.old
+
 
 def get_elevated_ids():
     return json_helper.load_json_file(path.join(JSON_DIR, "elevated_ids.json"))
@@ -53,22 +51,25 @@ def is_elevated_id(email, hd=None):
 
 
 def verb_reply(s):
-    return s + "_reply"
+    return "reply_" + s
 
 
 def to_error_json(s):
     return {"error": repr(s)}
 
+# following methods take one argument and return a string, an object{} and a
+# status value
+
 
 def reply_ping(data):
-    return verb_reply("ping"), {
-        "pingback":       data["ping"] == "hello",
+    return {
+        "pingback": data["ping"] == "hello",
     }, True
 
 
 def reply_gen_anticsrf(data):
-    return verb_reply("gen_anticsrf"), {
-        "anticsrf": str(binascii.hexlify(os.urandom(32)))
+    return {
+        "anticsrf": binascii.hexlify(os.urandom(32)).decode("ascii")
     }, True
 
 
@@ -76,5 +77,36 @@ def reply_gapi_validate(data):
     return gapi_auth.validate_gapi_key(data)
 
 
-if __name__ == '__main__':
-    print(json_helper.load_json_file(sys.argv[1]))
+def reply_view_orders(data):
+    # map needed keys to default values
+    data = dict(
+        data.items()
+        | {
+            "age": "new",
+            "count": 10,
+            "from_end": "head"
+        }.items()
+    )
+
+    end_func    = (
+        lambda x: x
+        if data["from_end"] == "head"
+        else lambda x: list(reversed(x))
+    )
+    num    = int(float(data["count"]))  # noqa to allow number passed as string or float or int
+    age    = "cur_orders" if data["age"] == "new" else "old_orders"
+    orders = json_helper.load_json_db("orders")
+
+    return end_func(orders[age])[:num], True
+
+
+def reply_view_menu(data):
+    return json_helper.load_json_db("menu"), True
+
+
+def reply_get_user_limits(data):
+    limits = json_helper.load_json_db("limits")
+    # user   = None
+    # find   = data["gapi_info"]
+    for uobj in limits:
+        pass

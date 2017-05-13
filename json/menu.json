@@ -7,7 +7,7 @@
       "fullname": "Chicken Soup",
       "price": 1.3,
       "comment": "Homestyle and cheap, what more could you want?",
-      "position": 1,
+      "sort_id": 1,
       "options": {
         "add bacon bits": 0.5
       }

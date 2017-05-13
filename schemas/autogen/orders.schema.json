@@ -10,11 +10,6 @@
                 "type": "object", 
                 "id": "0", 
                 "properties": {
-                    "sorted_id": {
-                        "required": true, 
-                        "type": "number", 
-                        "id": "sorted_id"
-                    }, 
                     "gapi_user": {
                         "required": true, 
                         "type": "object", 
@@ -82,6 +77,11 @@
                         "required": true, 
                         "type": "number", 
                         "id": "state"
+                    }, 
+                    "sort_id": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "sort_id"
                     }, 
                     "time": {
                         "required": true, 
@@ -100,11 +100,6 @@
                 "type": "object", 
                 "id": "0", 
                 "properties": {
-                    "sorted_id": {
-                        "required": true, 
-                        "type": "number", 
-                        "id": "sorted_id"
-                    }, 
                     "gapi_user": {
                         "required": true, 
                         "type": "object", 
@@ -172,6 +167,11 @@
                         "required": true, 
                         "type": "number", 
                         "id": "state"
+                    }, 
+                    "sort_id": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "sort_id"
                     }, 
                     "time": {
                         "required": true, 

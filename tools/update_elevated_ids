@@ -18,6 +18,7 @@ LOCK_LASTS = 5  # time in minutes for which the lock is valid
 
 ID_KINDS = ["dev", "sau9"]
 
+
 def get_other_kind(kind):
     return {
         "sau9": "dev",
@@ -25,6 +26,7 @@ def get_other_kind(kind):
     }.get(
         kind
     )
+
 
 def add_id(obj, kind, name):
     if name in obj[kind]:
@@ -115,7 +117,8 @@ def main(method, id_kind, id_name, *junk):
 
     print("ending with  ", json.dumps(id_obj, indent=2))
 
-    assert(new_obj is not None and all(x in new_obj for x in ID_KINDS))  # avoid trashing the file
+    # avoid trashing the file
+    assert(new_obj is not None and all(x in new_obj for x in ID_KINDS))
 
     with open(IDS_FILE_TEMP, "w+") as temp:
         json.dump(new_obj, temp)
@@ -127,6 +130,7 @@ def main(method, id_kind, id_name, *junk):
 
 def cleanup():
     os.remove(IDS_FILE_LOCK)
+
 
 if __name__ == '__main__':
     if not all(

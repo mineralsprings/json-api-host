@@ -48,15 +48,15 @@ def _validate_gapi_token(token):
 # NOTE: THIS IS AN EXC_VERB FUNCTION
 def validate_gapi_key(data):
     from api_helper import error_json
-    retval = [api_helper.verb_reply("gapi_validate"), None, False]
+    retval = [None, False]
 
     try:
-        retval[1:] = (_validate_gapi_token(data["gapi_key"]), True)
+        retval = (_validate_gapi_token(data["gapi_key"]), True)
 
     except client.AccessTokenCredentialsError as e:
-        retval[1] = error_json(e)
+        retval[0] = error_json(e)
 
     except crypt.AppIdentityError as e:
-        retval[1] = error_json(e)
+        retval[0] = error_json(e)
 
     return retval

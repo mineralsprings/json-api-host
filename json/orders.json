@@ -1,7 +1,7 @@
 {
   "cur_orders": [
     {
-      "sorted_id": 1,
+      "sort_id": 1,
       "time": 34567834,
       "state": 4,
       "gapi_user": {
@@ -34,7 +34,7 @@
   ],
   "old_orders": [
     {
-      "sorted_id": 1,
+      "sort_id": 1,
       "time": 34567834,
       "state": 4,
       "gapi_user": {

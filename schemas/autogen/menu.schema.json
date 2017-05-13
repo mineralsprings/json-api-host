@@ -15,15 +15,15 @@
                         "type": "string", 
                         "id": "comment"
                     }, 
-                    "position": {
-                        "required": true, 
-                        "type": "number", 
-                        "id": "position"
-                    }, 
                     "fullname": {
                         "required": true, 
                         "type": "string", 
                         "id": "fullname"
+                    }, 
+                    "sort_id": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "sort_id"
                     }, 
                     "price": {
                         "required": true, 
