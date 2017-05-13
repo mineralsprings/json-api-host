@@ -12,4 +12,4 @@ outf="schemas/autogen/$2.$3"
 # echo "$outf"
 # curl "$here" &> /dev/null
 # exit
-python2 /usr/local/bin/jsonschema_generator.py "$1" "$here" "$outf"
+python2 json_schema_generator/bin/jsonschema_generator.py "$1" "$here" "$outf"

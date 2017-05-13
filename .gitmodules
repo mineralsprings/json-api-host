@@ -1,0 +1,3 @@
+[submodule "json_schema_generator"]
+	path = json_schema_generator
+	url = https://github.com/catb0t/json_schema_generator
