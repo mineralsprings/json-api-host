@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "do you REALLY want to do that? think about it first. stupid."
+read -rn9 answer
+echo
+[[ "$answer" = "yes i do" ]] || exit 4
+for filename in json/*; do
+  name=$(python -c "print '$filename'.split('.')[0].split('/')[1]")
+  echo -e "\n========== doing $name\n"
+  tools/schematool record "$name" schema.json
+done

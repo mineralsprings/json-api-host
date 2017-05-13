@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#function git-autopull {
+  while :; do
+    [ "$(git diff origin/master origin)" ] && git pull;
+    sleep 500
+  done
+#}

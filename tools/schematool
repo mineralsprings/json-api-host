@@ -1,0 +1,15 @@
+#!/bin/bash
+# set -x
+
+(stat "json/$2.json" &>/dev/null) || {
+  echo -e "missing argument #2 (JSON filename)" # and/or #2 (output file extension)\n"
+  exit
+}
+
+here="file://$(realpath .)/json/$2.json"
+outf="schemas/autogen/$2.$3"
+# echo "$here"
+# echo "$outf"
+# curl "$here" &> /dev/null
+# exit
+python2 /usr/local/bin/jsonschema_generator.py "$1" "$here" "$outf"
