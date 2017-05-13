@@ -1,0 +1,188 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#", 
+    "required": true, 
+    "type": "object", 
+    "id": "#", 
+    "properties": {
+        "cur_orders": {
+            "items": {
+                "required": true, 
+                "type": "object", 
+                "id": "0", 
+                "properties": {
+                    "sorted_id": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "sorted_id"
+                    }, 
+                    "gapi_user": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "gapi_user", 
+                        "properties": {
+                            "some gapi user data": {
+                                "required": true, 
+                                "type": "string", 
+                                "id": "some gapi user data"
+                            }
+                        }
+                    }, 
+                    "total_value": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "total_value"
+                    }, 
+                    "items": {
+                        "items": {
+                            "required": true, 
+                            "type": "object", 
+                            "id": "0", 
+                            "properties": {
+                                "fullname": {
+                                    "required": true, 
+                                    "type": "string", 
+                                    "id": "fullname"
+                                }, 
+                                "price": {
+                                    "required": true, 
+                                    "type": "number", 
+                                    "id": "price"
+                                }, 
+                                "options": {
+                                    "required": true, 
+                                    "type": "object", 
+                                    "id": "options", 
+                                    "properties": {
+                                        "add bacon bits": {
+                                            "items": [
+                                                {
+                                                    "required": true, 
+                                                    "type": "number", 
+                                                    "id": "0"
+                                                }, 
+                                                {
+                                                    "required": true, 
+                                                    "type": "boolean", 
+                                                    "id": "1"
+                                                }
+                                            ], 
+                                            "required": true, 
+                                            "type": "array", 
+                                            "id": "add bacon bits"
+                                        }
+                                    }
+                                }
+                            }
+                        }, 
+                        "required": true, 
+                        "type": "array", 
+                        "id": "items"
+                    }, 
+                    "state": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "state"
+                    }, 
+                    "time": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "time"
+                    }
+                }
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "cur_orders"
+        }, 
+        "old_orders": {
+            "items": {
+                "required": true, 
+                "type": "object", 
+                "id": "0", 
+                "properties": {
+                    "sorted_id": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "sorted_id"
+                    }, 
+                    "gapi_user": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "gapi_user", 
+                        "properties": {
+                            "some gapi user data": {
+                                "required": true, 
+                                "type": "string", 
+                                "id": "some gapi user data"
+                            }
+                        }
+                    }, 
+                    "total_value": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "total_value"
+                    }, 
+                    "items": {
+                        "items": {
+                            "required": true, 
+                            "type": "object", 
+                            "id": "0", 
+                            "properties": {
+                                "fullname": {
+                                    "required": true, 
+                                    "type": "string", 
+                                    "id": "fullname"
+                                }, 
+                                "price": {
+                                    "required": true, 
+                                    "type": "number", 
+                                    "id": "price"
+                                }, 
+                                "options": {
+                                    "required": true, 
+                                    "type": "object", 
+                                    "id": "options", 
+                                    "properties": {
+                                        "add bacon bits": {
+                                            "items": [
+                                                {
+                                                    "required": true, 
+                                                    "type": "number", 
+                                                    "id": "0"
+                                                }, 
+                                                {
+                                                    "required": true, 
+                                                    "type": "boolean", 
+                                                    "id": "1"
+                                                }
+                                            ], 
+                                            "required": true, 
+                                            "type": "array", 
+                                            "id": "add bacon bits"
+                                        }
+                                    }
+                                }
+                            }
+                        }, 
+                        "required": true, 
+                        "type": "array", 
+                        "id": "items"
+                    }, 
+                    "state": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "state"
+                    }, 
+                    "time": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "time"
+                    }
+                }
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "old_orders"
+        }
+    }
+}

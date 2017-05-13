@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {},
+  "id": "http://example.com/example.json",
+  "properties": {
+    "banned_users": {
+      "id": "/properties/banned_users",
+      "items": {
+        "id": "/properties/banned_users/items",
+        "properties": {
+          "bans": {
+            "id": "/properties/banned_users/items/properties/bans",
+            "items": {
+              "id": "/properties/banned_users/items/properties/bans/items",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "expires": {
+            "id": "/properties/banned_users/items/properties/expires",
+            "type": "integer"
+          },
+          "gapi_info": {
+            "id": "/properties/banned_users/items/properties/gapi_info",
+            "properties": {
+              "key": {
+                "id": "/properties/banned_users/items/properties/gapi_info/properties/key",
+                "type": "string"
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "type": "object"
+          },
+          "placed": {
+            "id": "/properties/banned_users/items/properties/placed",
+            "properties": {
+              "at": {
+                "id": "/properties/banned_users/items/properties/placed/properties/at",
+                "type": "integer"
+              },
+              "automated": {
+                "id": "/properties/banned_users/items/properties/placed/properties/automated",
+                "type": "boolean"
+              },
+              "gapi_info": {
+                "id": "/properties/banned_users/items/properties/placed/properties/gapi_info",
+                "type": "string"
+              }
+            },
+            "required": [
+              "at",
+              "gapi_info",
+              "automated"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "placed",
+          "expires",
+          "gapi_info",
+          "bans"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "limited_users": {
+      "id": "/properties/limited_users",
+      "items": {
+        "id": "/properties/limited_users/items",
+        "properties": {
+          "expires": {
+            "id": "/properties/limited_users/items/properties/expires",
+            "type": "integer"
+          },
+          "gapi_info": {
+            "id": "/properties/limited_users/items/properties/gapi_info",
+            "properties": {
+              "key": {
+                "id": "/properties/limited_users/items/properties/gapi_info/properties/key",
+                "type": "string"
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "type": "object"
+          },
+          "placed_by": {
+            "id": "/properties/limited_users/items/properties/placed_by",
+            "properties": {
+              "at": {
+                "id": "/properties/limited_users/items/properties/placed_by/properties/at",
+                "type": "integer"
+              },
+              "automated": {
+                "id": "/properties/limited_users/items/properties/placed_by/properties/automated",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "at",
+              "automated"
+            ],
+            "type": "object"
+          },
+          "restraints": {
+            "id": "/properties/limited_users/items/properties/restraints",
+            "properties": {
+              "order_maxitems": {
+                "id": "/properties/limited_users/items/properties/restraints/properties/order_maxitems",
+                "type": "integer"
+              },
+              "order_maxvalue": {
+                "id": "/properties/limited_users/items/properties/restraints/properties/order_maxvalue",
+                "type": "integer"
+              },
+              "orders_per_day": {
+                "id": "/properties/limited_users/items/properties/restraints/properties/orders_per_day",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "order_maxvalue",
+              "orders_per_day",
+              "order_maxitems"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "restraints",
+          "expires",
+          "placed_by",
+          "gapi_info"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "banned_users",
+    "limited_users"
+  ],
+  "type": "object"
+}

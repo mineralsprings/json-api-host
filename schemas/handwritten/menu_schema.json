@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "id": "http://catnipcdn.pagekite.me/schemas/menu_schema.json",
+  "title": "MS Menu",
+  "description": "Data about what can be ordered from the kitchen",
+  "type": "object",
+  "properties": {
+    "is_buffet": {
+      "description": "whether this menu represents a buffet",
+      "type": "boolean"
+    },
+    "effective": {
+      "description": "time at which this menu takes effect",
+      "type": "number"
+    },
+    "expires": {
+      "description": "time at which this menu is no longer valid",
+      "type": "number"
+    },
+    "item_list": {
+      "description": "list of menu items",
+      "type": "object",
+      "properties": {
+        "fullname": {
+          "type": "string"
+        },
+        "price": {
+          "description": "(nonexistent on buffet) item price",
+          "type": "number"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "position": {
+          "description": "because objects are unordered hashes -- to define a sort order",
+          "type": "number"
+        },
+        "options": {
+          "description": "enumerate optional toppings / sides / customisations",
+          "type": "object"
+        }
+      },
+      "required": [
+        "fullname",
+        "comment",
+        "position"
+      ]
+    }
+  }
+}

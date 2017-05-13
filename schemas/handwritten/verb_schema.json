@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "http://catnipcdn.pagekite.me/schema.json",
+  "id": "http://catnipcdn.pagekite.me/schemas/verb_schema.json",
   "title": "API Request",
   "description": "A sentence in a conversation between the client and server",
   "type": "object",
@@ -26,6 +26,7 @@
   },
   "required": [
     "verb",
-    "data"
+    "data",
+    "time"
   ]
 }

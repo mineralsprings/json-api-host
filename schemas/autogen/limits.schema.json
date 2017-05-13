@@ -1,0 +1,137 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#", 
+    "required": true, 
+    "type": "object", 
+    "id": "#", 
+    "properties": {
+        "banned_users": {
+            "items": {
+                "required": true, 
+                "type": "object", 
+                "id": "0", 
+                "properties": {
+                    "placed": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "placed", 
+                        "properties": {
+                            "automated": {
+                                "required": true, 
+                                "type": "boolean", 
+                                "id": "automated"
+                            }, 
+                            "at": {
+                                "required": true, 
+                                "type": "number", 
+                                "id": "at"
+                            }, 
+                            "gapi_info": {
+                                "required": true, 
+                                "type": "string", 
+                                "id": "gapi_info"
+                            }
+                        }
+                    }, 
+                    "expires": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "expires"
+                    }, 
+                    "gapi_info": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "gapi_info", 
+                        "properties": {
+                            "key": {
+                                "required": true, 
+                                "type": "string", 
+                                "id": "key"
+                            }
+                        }
+                    }, 
+                    "bans": {
+                        "items": {
+                            "required": true, 
+                            "type": "string", 
+                            "id": "0"
+                        }, 
+                        "required": true, 
+                        "type": "array", 
+                        "id": "bans"
+                    }
+                }
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "banned_users"
+        }, 
+        "limited_users": {
+            "items": {
+                "required": true, 
+                "type": "object", 
+                "id": "0", 
+                "properties": {
+                    "restraints": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "restraints", 
+                        "properties": {
+                            "order_maxvalue": {
+                                "required": true, 
+                                "type": "number", 
+                                "id": "order_maxvalue"
+                            }, 
+                            "orders_per_day": {
+                                "required": true, 
+                                "type": "number", 
+                                "id": "orders_per_day"
+                            }, 
+                            "order_maxitems": {
+                                "required": true, 
+                                "type": "number", 
+                                "id": "order_maxitems"
+                            }
+                        }
+                    }, 
+                    "expires": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "expires"
+                    }, 
+                    "placed_by": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "placed_by", 
+                        "properties": {
+                            "at": {
+                                "required": true, 
+                                "type": "number", 
+                                "id": "at"
+                            }, 
+                            "automated": {
+                                "required": true, 
+                                "type": "boolean", 
+                                "id": "automated"
+                            }
+                        }
+                    }, 
+                    "gapi_info": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "gapi_info", 
+                        "properties": {
+                            "key": {
+                                "required": true, 
+                                "type": "string", 
+                                "id": "key"
+                            }
+                        }
+                    }
+                }
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "limited_users"
+        }
+    }
+}

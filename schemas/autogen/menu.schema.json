@@ -1,0 +1,67 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#", 
+    "required": true, 
+    "type": "object", 
+    "id": "#", 
+    "properties": {
+        "item_list": {
+            "items": {
+                "required": true, 
+                "type": "object", 
+                "id": "0", 
+                "properties": {
+                    "comment": {
+                        "required": true, 
+                        "type": "string", 
+                        "id": "comment"
+                    }, 
+                    "position": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "position"
+                    }, 
+                    "fullname": {
+                        "required": true, 
+                        "type": "string", 
+                        "id": "fullname"
+                    }, 
+                    "price": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "price"
+                    }, 
+                    "options": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "options", 
+                        "properties": {
+                            "add bacon bits": {
+                                "required": true, 
+                                "type": "number", 
+                                "id": "add bacon bits"
+                            }
+                        }
+                    }
+                }
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "item_list"
+        }, 
+        "expires": {
+            "required": true, 
+            "type": "number", 
+            "id": "expires"
+        }, 
+        "is_buffet": {
+            "required": true, 
+            "type": "boolean", 
+            "id": "is_buffet"
+        }, 
+        "effective": {
+            "required": true, 
+            "type": "number", 
+            "id": "effective"
+        }
+    }
+}

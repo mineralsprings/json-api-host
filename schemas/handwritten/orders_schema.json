@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {},
+  "id": "http://example.com/example.json",
+  "properties": {
+    "cur_orders": {
+      "id": "/properties/cur_orders",
+      "items": {
+        "id": "/properties/cur_orders/items",
+        "properties": {
+          "gapi_user": {
+            "id": "/properties/cur_orders/items/properties/gapi_user",
+            "properties": {
+              "some gapi user data": {
+                "id": "/properties/cur_orders/items/properties/gapi_user/properties/some gapi user data",
+                "type": "string"
+              }
+            },
+            "required": [
+              "some gapi user data"
+            ],
+            "type": "object"
+          },
+          "items": {
+            "id": "/properties/cur_orders/items/properties/items",
+            "items": {
+              "id": "/properties/cur_orders/items/properties/items/items",
+              "properties": {
+                "fullname": {
+                  "id": "/properties/cur_orders/items/properties/items/items/properties/fullname",
+                  "type": "string"
+                },
+                "options": {
+                  "id": "/properties/cur_orders/items/properties/items/items/properties/options",
+                  "properties": {
+                    "add bacon bits": {
+                      "id": "/properties/cur_orders/items/properties/items/items/properties/options/properties/add bacon bits",
+                      "items": {
+                        "id": "/properties/cur_orders/items/properties/items/items/properties/options/properties/add bacon bits/items",
+                        "type": "number"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "add bacon bits"
+                  ],
+                  "type": "object"
+                },
+                "price": {
+                  "id": "/properties/cur_orders/items/properties/items/items/properties/price",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "fullname",
+                "price",
+                "options"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "sorted_id": {
+            "id": "/properties/cur_orders/items/properties/sorted_id",
+            "type": "integer"
+          },
+          "state": {
+            "id": "/properties/cur_orders/items/properties/state",
+            "type": "integer"
+          },
+          "time": {
+            "id": "/properties/cur_orders/items/properties/time",
+            "type": "integer"
+          },
+          "total_value": {
+            "id": "/properties/cur_orders/items/properties/total_value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sorted_id",
+          "gapi_user",
+          "total_value",
+          "items",
+          "state",
+          "time"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "old_orders": {
+      "id": "/properties/old_orders",
+      "items": {
+        "id": "/properties/old_orders/items",
+        "properties": {
+          "gapi_user": {
+            "id": "/properties/old_orders/items/properties/gapi_user",
+            "properties": {
+              "some gapi user data": {
+                "id": "/properties/old_orders/items/properties/gapi_user/properties/some gapi user data",
+                "type": "string"
+              }
+            },
+            "required": [
+              "some gapi user data"
+            ],
+            "type": "object"
+          },
+          "items": {
+            "id": "/properties/old_orders/items/properties/items",
+            "items": {
+              "id": "/properties/old_orders/items/properties/items/items",
+              "properties": {
+                "fullname": {
+                  "id": "/properties/old_orders/items/properties/items/items/properties/fullname",
+                  "type": "string"
+                },
+                "options": {
+                  "id": "/properties/old_orders/items/properties/items/items/properties/options",
+                  "properties": {
+                    "add bacon bits": {
+                      "id": "/properties/old_orders/items/properties/items/items/properties/options/properties/add bacon bits",
+                      "items": {
+                        "id": "/properties/old_orders/items/properties/items/items/properties/options/properties/add bacon bits/items",
+                        "type": "number"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "add bacon bits"
+                  ],
+                  "type": "object"
+                },
+                "price": {
+                  "id": "/properties/old_orders/items/properties/items/items/properties/price",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "fullname",
+                "price",
+                "options"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "sorted_id": {
+            "id": "/properties/old_orders/items/properties/sorted_id",
+            "type": "integer"
+          },
+          "state": {
+            "id": "/properties/old_orders/items/properties/state",
+            "type": "integer"
+          },
+          "time": {
+            "id": "/properties/old_orders/items/properties/time",
+            "type": "integer"
+          },
+          "total_value": {
+            "id": "/properties/old_orders/items/properties/total_value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sorted_id",
+          "gapi_user",
+          "total_value",
+          "items",
+          "state",
+          "time"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "cur_orders",
+    "old_orders"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#", 
+    "required": true, 
+    "type": "object", 
+    "id": "#", 
+    "properties": {
+        "devs": {
+            "items": {
+                "required": true, 
+                "type": "string", 
+                "id": "0"
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "devs"
+        }, 
+        "sau9": {
+            "items": {
+                "required": true, 
+                "type": "string", 
+                "id": "0"
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "sau9"
+        }
+    }
+}

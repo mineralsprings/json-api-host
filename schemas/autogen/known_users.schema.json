@@ -1,0 +1,87 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#", 
+    "required": true, 
+    "type": "object", 
+    "id": "#", 
+    "properties": {
+        "all_users": {
+            "items": {
+                "required": true, 
+                "type": "object", 
+                "id": "0", 
+                "properties": {
+                    "is_rate_limited": {
+                        "required": true, 
+                        "type": "boolean", 
+                        "id": "is_rate_limited"
+                    }, 
+                    "gapi_info": {
+                        "required": true, 
+                        "type": "object", 
+                        "id": "gapi_info", 
+                        "properties": {
+                            "google identity object goes here": {
+                                "required": true, 
+                                "type": "string", 
+                                "id": "google identity object goes here"
+                            }
+                        }
+                    }, 
+                    "count_conns": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "count_conns"
+                    }, 
+                    "count_orders": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "count_orders"
+                    }, 
+                    "count_signins": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "count_signins"
+                    }, 
+                    "time_last_conn": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "time_last_conn"
+                    }, 
+                    "count_menu_upd8s": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "count_menu_upd8s"
+                    }, 
+                    "count_bans": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "count_bans"
+                    }, 
+                    "is_banned": {
+                        "required": true, 
+                        "type": "boolean", 
+                        "id": "is_banned"
+                    }, 
+                    "count_limits": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "count_limits"
+                    }, 
+                    "time_first_conn": {
+                        "required": true, 
+                        "type": "number", 
+                        "id": "time_first_conn"
+                    }, 
+                    "unique_id": {
+                        "required": true, 
+                        "type": "string", 
+                        "id": "unique_id"
+                    }
+                }
+            }, 
+            "required": true, 
+            "type": "array", 
+            "id": "all_users"
+        }
+    }
+}
