@@ -60,6 +60,7 @@ def validate_json_dir():
                         json.load(fjson)
                     )
                     jsonschema.validate(vjson, scma)
+    print("All JSON and schemas OK, hooray!")
 
 
 def load_json_file(filename):
