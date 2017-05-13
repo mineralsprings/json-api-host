@@ -3,7 +3,21 @@
     {
       "unique_id": "sdhgjfhsdjkf",
       "gapi_info": {
-        "google identity object goes here": "?"
+        "aud": "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj.apps.googleusercontent.com",
+        "azp": "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj.apps.googleusercontent.com",
+        "sub": "117290738254858698660",
+        "email_verified": true,
+        "given_name": "Cat",
+        "iat": 1494713241,
+        "family_name": "Stevens",
+        "is_elevated": true,
+        "at_hash": "1VEFW1MeZt4FJmbNVcY9SQ",
+        "name": "Cat Stevens",
+        "email": "thebinaryminer@gmail.com",
+        "iss": "accounts.google.com",
+        "exp": 1494716841,
+        "locale": "en",
+        "picture": "https://lh6.googleusercontent.com/-1-ZoYr-9-us/AAAAAAAAAAI/AAAAAAAAPrQ/84Pt6YkOE1c/s96-c/photo.jpg"
       },
       "time_first_conn": 1247563845,
       "time_last_conn": 1437834823,

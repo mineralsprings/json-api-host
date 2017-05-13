@@ -33,7 +33,7 @@ def _validate_gapi_token(token):
 
     idinfo["is_elevated"] = \
         api_helper.is_elevated_id(idinfo["email"], hd=hd)
-
+    # print(idinfo)
     return idinfo
     # Or, if multiple clients access the backend server:
     # idinfo = client.verify_id_token(token, None)
@@ -47,16 +47,16 @@ def _validate_gapi_token(token):
 
 # NOTE: THIS IS AN EXC_VERB FUNCTION
 def validate_gapi_key(data):
-    from api_helper import error_json
+    from api_helper import to_error_json
     retval = [None, False]
 
     try:
         retval = (_validate_gapi_token(data["gapi_key"]), True)
 
     except client.AccessTokenCredentialsError as e:
-        retval[0] = error_json(e)
+        retval[0] = to_error_json(e)
 
     except crypt.AppIdentityError as e:
-        retval[0] = error_json(e)
+        retval[0] = to_error_json(e)
 
     return retval

@@ -53,7 +53,7 @@ JSON_DIR = "json"
 
 
 def get_elevated_ids():
-    return load_json_file(path.join(JSON_DIR, "elevated_ids.json"))
+    return load_json_db(path.join(JSON_DIR, "elevated_ids.json"))
 
 
 def is_elevated_id(email, hd=None):
