@@ -1,18 +1,15 @@
 {
   "is_buffet": false,
-
-  "time_effective": 4524452454,
-  "expires":        124325512342,
-
+  "effective": 4524452454,
+  "expires": 124325512342,
   "item_list": [
     {
       "fullname": "Chicken Soup",
-      "price":    1.30,
-      "comment":  "Homestyle and cheap, what more could you want?",
+      "price": 1.3,
+      "comment": "Homestyle and cheap, what more could you want?",
       "position": 1,
-      
       "options": {
-        "add bacon bits": 0.50
+        "add bacon bits": 0.5
       }
     }
   ]

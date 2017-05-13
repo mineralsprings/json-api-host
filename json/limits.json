@@ -4,34 +4,31 @@
       "gapi_info": {
         "key": "val"
       },
-
-      "expires":   5784652433,
+      "expires": 5784652433,
       "restraints": {
         "orders_per_day": 2,
         "order_maxitems": 3,
-        "order_maxvalue": 10,
+        "order_maxvalue": 10
       },
-
       "placed_by": {
-        "automated": true
+        "automated": true,
+        "at": 27354234
       }
     }
   ],
-
   "banned_users": [
     {
       "gapi_info": {
         "key": "val"
       },
-
-      "expires":     4573459234,
-      "banned_svcs": [
-        "view", "order"
+      "expires": 4573459234,
+      "bans": [
+        "order"
       ],
-
-      "placed_by": {
+      "placed": {
         "automated": false,
-        "gapi_info": "val"
+        "gapi_info": "val",
+        "at": 245325345
       }
     }
   ]

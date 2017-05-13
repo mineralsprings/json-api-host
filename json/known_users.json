@@ -2,23 +2,19 @@
   "all_users": [
     {
       "unique_id": "sdhgjfhsdjkf",
-
       "gapi_info": {
         "google identity object goes here": "?"
       },
-
-      "time_first_conn":  1247563845,
-      "time_last_conn":   1437834823,
-
-      "count_conns":      5,
-      "count_orders":     3,
+      "time_first_conn": 1247563845,
+      "time_last_conn": 1437834823,
+      "count_conns": 5,
+      "count_orders": 3,
       "count_menu_upd8s": 2,
-      "count_signins":    1,
-      "count_limits":     1,
-      "count_bans":       2,
-
-      "is_rate_limited":  false,
-      "is_banned":        false,
+      "count_signins": 1,
+      "count_limits": 1,
+      "count_bans": 2,
+      "is_rate_limited": false,
+      "is_banned": false
     }
   ]
 }

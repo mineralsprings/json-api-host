@@ -1,37 +1,68 @@
 {
-  "all_orders": [
-
+  "cur_orders": [
     {
       "sorted_id": 1,
-      "time":      34567834,
-
+      "time": 34567834,
+      "state": 4,
       "gapi_user": {
         "some gapi user data": ""
       },
-
       "items": [
         {
           "fullname": "Chicken Soup",
-          "price":    1.30,
-
+          "price": 1.3,
           "options": {
-            "add bacon bits": [0.50, true]
+            "add bacon bits": [
+              0.5,
+              true
+            ]
           }
         },
-
         {
           "fullname": "Chicken Soup",
-          "price":    1.30,
-
+          "price": 1.3,
           "options": {
-            "add bacon bits": [0.50, false]
+            "add bacon bits": [
+              0.5,
+              false
+            ]
           }
         }
       ],
-
-      "total_value": 3.10
-    },
-
-
+      "total_value": 3.1
+    }
+  ],
+  "old_orders": [
+    {
+      "sorted_id": 1,
+      "time": 34567834,
+      "state": 4,
+      "gapi_user": {
+        "some gapi user data": ""
+      },
+      "items": [
+        {
+          "fullname": "Chicken Soup",
+          "price": 1.3,
+          "options": {
+            "add bacon bits": [
+              0.5,
+              true
+            ]
+          }
+        },
+        {
+          "fullname": "Chicken Soup",
+          "price": 1.3,
+          "options": {
+            "add bacon bits": [
+              0.5,
+              false
+            ]
+          }
+        }
+      ],
+      "total_value": 3.1
+    }
   ]
 }
