@@ -50,7 +50,10 @@ def write_out_templates():
 
 def validate_json_dir():
     for name in default_objs.keys():
-        with open(path.join("schemas/autogen", name + ".schema.json"), "r") as fscma:
+        with open(
+                path.join("schemas/autogen", name + ".schema.json"),
+                "r"
+        ) as fscma:
             with open(
                 path.join(api_helper.JSON_DIR, name + ".json"),
                 "r"

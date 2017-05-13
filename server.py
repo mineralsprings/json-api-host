@@ -2,14 +2,14 @@
 # adapted from https://gist.github.com/nitaku/10d0662536f37a087e1b
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
-from os import path
+# from os import path
 import api_helper
 import json
 import minify
 import os
 import signal
 import sys
-# import traceback
+import traceback
 import time as tm
 import urllib
 
@@ -27,8 +27,8 @@ class Server(BaseHTTPRequestHandler):
     def write_json(self, obj):
         self.write_str(json.dumps(obj))
 
-    def write_json_error(self, err):
-        self.write_json( {"error": err} )
+    def write_json_error(self, err, expl=""):
+        self.write_json( {"error": err, "explanation": expl} )
 
     def set_headers(self, resp, headers=(), msg=None):
         self.send_response(resp, message=msg)
@@ -70,10 +70,11 @@ class Server(BaseHTTPRequestHandler):
             with open(cpath, "rb") as icon:
                 self.wfile.write(icon.read())
 
-        elif cpath == "schema.json":
-            self.set_headers(200)
-            with open(path.join("schemas", cpath), "r") as scma:
-                self.write_str(scma.read())
+        # TODO: needs a rewrite
+        # elif cpath == "schema.json":
+        #     self.set_headers(200)
+        #     with open(path.join("schemas", cpath), "r") as scma:
+        #         self.write_str(scma.read())
 
         # no browsing the JSON files for you!
         # elif cpath in JSON_FILES:
@@ -113,7 +114,10 @@ class Server(BaseHTTPRequestHandler):
             message = json.loads(minmsg)
         except json.JSONDecodeError as ex:
             self.set_headers(400)
-            self.write_json_error("can't process POST body as JSON")
+            self.write_json_error(
+                "can't process POST body as JSON",
+                expl=traceback.format_exc(1)
+            )
             return
 
         reply = dict()
@@ -140,7 +144,9 @@ class Server(BaseHTTPRequestHandler):
             "time": message["time"]
         }
 
-        if ok:
+        if ok == -1:
+            return
+        elif ok is True:
             self.set_headers(code)
         # else the headers were hopefully already sent
 
@@ -160,11 +166,20 @@ class Server(BaseHTTPRequestHandler):
         )
 
     def exc_verb(self, verbstr, data):
-        return {
-            "gapi_validate": api_helper.wrap_validate_gapi_key,
-            "ping":          api_helper.reply_ping,
-            "gen_anticsrf":  api_helper.generate_anticsrf_token,
-        }.get(
+        import re
+        attrs       = dir(api_helper)
+        replyfun_re = re.compile(r"^reply_[a-z_0-9]+$")
+        filattrs    = list(filter(
+            lambda s: None is not re.match(replyfun_re, s),
+            attrs
+        ))
+        # print(list(filattrs))
+        funcs       = (eval("api_helper.{}".format(fn)) for fn in filattrs)
+        verbnames   = ("".join(fn.split("_")[1:]) for fn in filattrs)
+
+        verb_func_dict = dict(zip(verbnames, funcs))
+
+        return verb_func_dict.get(
             verbstr,
             lambda v:
                 self.internal_error("API error: bad verb: {}".format(verbstr))
@@ -172,7 +187,8 @@ class Server(BaseHTTPRequestHandler):
 
     def internal_error(self, ctx):
         self.set_headers(500, msg=ctx)
-        return False
+        self.write_json_error(ctx)
+        return "", {}, -1
 
     """ NON-HTTP-METHODS """
 
