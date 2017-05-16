@@ -82,7 +82,7 @@ def reply_gapi_validate(data):
     rval = gapi_auth.validate_gapi_key(data)
     return [
         {
-            "anticsrf":  anticsrf_register_tok(),
+            "anticsrf":  anticsrf.register_token(),
             "gapi_info": rval[0]
         },
         rval[1]
