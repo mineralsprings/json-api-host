@@ -56,22 +56,6 @@ def get_elevated_ids():
     return load_json_db(path.join(JSON_DIR, "elevated_ids.json"))
 
 
-def is_elevated_id(email, hd=None):
-    idn, dom = email.split("@")
-    el_ids  = get_elevated_ids()
-    # print(repr(el_ids["devs"]) + "\n", id, dom)
-
-    return (
-        (
-            idn in el_ids["devs"] and (dom == "gmail.com")
-        )
-        or (
-            (idn in el_ids["sau9"] and (dom == "sau9.org"))
-            and (hd is not None and hd == "sau9.org")
-        )
-    )
-
-
 def sort_array_by_id(array, sid="sort_id"):
     return sorted(array, key=sid)
 

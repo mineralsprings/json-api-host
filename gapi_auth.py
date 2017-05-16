@@ -17,6 +17,7 @@ def _validate_gapi_token(token):
             .format(idinfo["iss"])
         )
 
+    # NOTE: uses INTTIME SECONDS when written to JSON DB must use MILLITIME
     elif ( idinfo["iat"] >= now ) or ( idinfo["exp"] <= now ):
         raise client.AccessTokenCredentialsError(
             "Token has expired or invalid timestamps: issued-at {} expires {}"
@@ -48,15 +49,15 @@ def _validate_gapi_token(token):
 # NOTE: THIS IS AN EXC_VERB FUNCTION
 def validate_gapi_key(data):
     from api_helper import to_error_json
-    retval = [None, False]
 
     try:
-        retval = (_validate_gapi_token(data["gapi_key"]), True)
+        return _validate_gapi_token(data["gapi_key"]), True
 
     except client.AccessTokenCredentialsError as e:
-        retval[0] = to_error_json(e)
+        v = to_error_json(e)
+        return v, (400, v)
 
     except crypt.AppIdentityError as e:
-        retval[0] = to_error_json(e)
+        v = to_error_json(e)
+        return v, (400, v)
 
-    return retval

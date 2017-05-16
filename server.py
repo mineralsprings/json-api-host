@@ -11,10 +11,9 @@ import os
 import signal
 import sys
 import traceback
-import time as tm
 import urllib
 
-REQUIRE_ANTICSRF_POST = False
+REQUIRE_ANTICSRF_POST = True
 
 
 class Server(BaseHTTPRequestHandler):
@@ -134,6 +133,8 @@ class Server(BaseHTTPRequestHandler):
             verb, data, time = (
                 message[key] for key in ["verb", "data", "time"]
             )
+            if time["conn_init"] > api_helper.millitime():
+                raise ValueError
 
         except KeyError as ex:
             self.set_headers(400)
@@ -141,22 +142,44 @@ class Server(BaseHTTPRequestHandler):
                 "POST body missing key 'data', 'verb' or 'time'"
             )
             return
+        except ValueError:
+            self.set_headers(406)
+            self.write_json_error(
+                "server can't service requests from the future",
+                expl="JSON data in POST body has declared a time which is"
+                + " later than the current time"
+            )
+            return
 
         if REQUIRE_ANTICSRF_POST and (
-            verb != "gen_anticsrf" and "anticsrf" not in data
+            (verb not in ["ping", "gapi_validate"]) and
+            ("anticsrf" not in data)
         ):
-            self.set_headers(403)
+            self.set_headers(401)
             self.write_json_error(
                 "JSON body missing key 'anticsrf' but the server is configured"
                 + " to require such a token",
-                expl="you should ask the server for one first"
+                expl="send the server a gapi_validate request and you will get"
+                + " a valid key"
             )
+            print("CSRF token missing")
             return
+
+        elif (
+            "anticsrf" in data and
+            not api_helper.anticsrf_is_registered(data["anticsrf"])
+        ):
+            self.set_headers(401)
+            self.write_json_error(
+                "JSON body 'data' subkey 'anticsrf' is not registered on the"
+                + " server side",
+                expl="send the server a gapi_validate request and you will get"
+                + " a valid key"
+            )
 
         reply = dict()
         code  = 200
         ok    = True
-
 
         # should exc_verb throw exceptions?
         data, ok = self.exc_verb(verb, data)
@@ -166,13 +189,18 @@ class Server(BaseHTTPRequestHandler):
             "time": message["time"]
         }
 
+        if message["verb"] != "ping":
+            reply["data"]["anticsrf"] = message["data"]["anticsrf"]
+
         if ok == -1:
             return
         elif ok is True:
             self.set_headers(code)
-        # else the headers were hopefully already sent
+        else:
+            self.set_headers(ok[0], msg=ok[1])
+            # else the headers were hopefully already sent
 
-        reply["time"]["conn_server"] = round(tm.time() * 1000)
+        reply["time"]["conn_server"] = api_helper.millitime()
         self.write_json(reply)
 
     def do_OPTIONS(self):
