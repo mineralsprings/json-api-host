@@ -3,6 +3,7 @@
 # import sys
 import binascii
 import json_helper
+import anticsrf
 import os
 import gapi_auth
 import time
@@ -27,13 +28,6 @@ JSON_FILES = [
 
 JSON_DIR = "json"
 
-ANTICSRF_REGISTER = {
-    # here's a good vulnerability to leave uncommented ;)
-    # "token": 12344478634234
-}
-
-ANTICSRF_EXPIRY  = 1000 * 60 * 60  # 1 hour
-ANTICSRF_KEYSIZE = 42
 # when a file gets too large to ask python to reasonably open,
 # it should be moved to a new file called filename-<DATE_MOVED>.json.old
 
@@ -70,35 +64,9 @@ def to_error_json(s):
     return {"error": repr(s)}
 
 
-def anticsrf_register_tok():
-    global ANTICSRF_REGISTER
-    anticsrf_clean_expired()  # clean at every opportunity
-    tok = binascii.hexlify(os.urandom(ANTICSRF_KEYSIZE)).decode("ascii")
-    ANTICSRF_REGISTER[tok] = millitime() + ANTICSRF_EXPIRY  # tokens expire
-    return tok
+def random_key(size):
+    return binascii.hexlify(os.urandom(size)).decode("ascii")
 
-
-# deliberately and prematurely expire a token
-def anticsrf_expire_1_tok(tok):
-    global ANTICSRF_REGISTER
-    del ANTICSRF_REGISTER[tok]
-    # also check for other expired tokens
-    return 1 + anticsrf_clean_expired()
-
-
-def anticsrf_clean_expired():
-    global ANTICSRF_REGISTER
-    ol = len(ANTICSRF_REGISTER)
-    ANTICSRF_REGISTER = dict(filter(
-        lambda o: o[1] > millitime(),
-        ANTICSRF_REGISTER
-    ))
-    return abs(len(ANTICSRF_REGISTER) - ol)
-
-
-def anticsrf_is_registered(tok):
-    anticsrf_clean_expired()  # do this first to prevent replays
-    return tok in ANTICSRF_REGISTER and ANTICSRF_REGISTER[tok] > millitime()
 
 # following methods take one argument and return an object{} and a
 # status value (True for 200 OK or a tuple like (code, message))
