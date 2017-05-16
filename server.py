@@ -3,6 +3,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 # from os import path
+import anticsrf
 import api_helper
 import json_helper
 import json
@@ -12,6 +13,7 @@ import signal
 import sys
 import traceback
 import urllib
+import threading
 
 REQUIRE_ANTICSRF_POST = True
 
@@ -99,7 +101,7 @@ class Server(BaseHTTPRequestHandler):
     def do_POST(self):
         # pathobj = urllib.parse.urlparse(self.path)
         # print(pathobj)
-
+        lock = threading.Lock()
         # refuse to receive non-json content
         if self.headers["content-type"] != "application/json":
             self.set_headers(400)
@@ -151,10 +153,16 @@ class Server(BaseHTTPRequestHandler):
             )
             return
 
-        if REQUIRE_ANTICSRF_POST and (
-            (verb not in ["ping", "gapi_validate"]) and
-            ("anticsrf" not in data)
-        ):
+        csrf_token = ""
+        if "anticsrf" in message["data"]:
+            csrf_token = message["data"]["anticsrf"]
+
+        csrf_required = verb in ["ping", "gapi_validate"]
+        csrf_given    = anticsrf.is_registered(csrf_token)
+
+        csrf_valid = False
+
+        if REQUIRE_ANTICSRF_POST and csrf_required and (csrf_token != ""):
             self.set_headers(401)
             self.write_json_error(
                 "JSON body missing key 'anticsrf' but the server is configured"
@@ -165,10 +173,7 @@ class Server(BaseHTTPRequestHandler):
             print("CSRF token missing")
             return
 
-        elif (
-            "anticsrf" in data and
-            not api_helper.anticsrf_is_registered(data["anticsrf"])
-        ):
+        elif not csrf_given:
             self.set_headers(401)
             self.write_json_error(
                 "JSON body 'data' subkey 'anticsrf' is not registered on the"
@@ -176,21 +181,34 @@ class Server(BaseHTTPRequestHandler):
                 expl="send the server a gapi_validate request and you will get"
                 + " a valid key"
             )
+            print("CSRF token junk")
+            return
+
+        else:
+            csrf_valid = True
 
         reply = dict()
         code  = 200
         ok    = True
 
-        # should exc_verb throw exceptions?
-        data, ok = self.exc_verb(verb, data)
+        with lock:
+            # should exc_verb throw exceptions?
+            try:
+                data, ok = self.exc_verb(verb, data)
+            except Exception as e:
+                self.send_error(
+                    500,
+                    message=", ".join(traceback.format_exc().split("\n"))
+                )
+
         reply = {
             "response": api_helper.verb_reply(verb),
             "data": data,
             "time": message["time"]
         }
 
-        if message["verb"] != "ping":
-            reply["data"]["anticsrf"] = message["data"]["anticsrf"]
+        if csrf_valid and not csrf_required:
+            reply["anticsrf"] = csrf_token
 
         if ok == -1:
             return
