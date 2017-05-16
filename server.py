@@ -157,7 +157,7 @@ class Server(BaseHTTPRequestHandler):
         if "anticsrf" in message["data"]:
             csrf_token = message["data"]["anticsrf"]
 
-        csrf_required = verb in ["ping", "gapi_validate"]
+        csrf_required = verb not in ["ping", "gapi_validate"]
         csrf_given    = anticsrf.is_registered(csrf_token)
 
         csrf_valid = False
