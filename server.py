@@ -173,7 +173,7 @@ class Server(BaseHTTPRequestHandler):
             print("CSRF token missing")
             return
 
-        elif not csrf_given:
+        elif csrf_required and not csrf_given:
             self.set_headers(401)
             self.write_json_error(
                 "JSON body 'data' subkey 'anticsrf' is not registered on the"
