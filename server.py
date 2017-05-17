@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # adapted from https://gist.github.com/nitaku/10d0662536f37a087e1b
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from socketserver import ThreadingMixIn
-# from os import path
-import anticsrf
-import api_helper
-import json_helper
 import json
-import minify
 import os
 import signal
 import sys
+import threading
 import traceback
 import urllib
-import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
+
+import anticsrf
+import api_helper
+import json_helper
+import minify
 
 REQUIRE_ANTICSRF_POST = True
 

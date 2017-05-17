@@ -13,8 +13,8 @@ Contributers:
     - Made into a PyPI Package
 """
 
-import re
 import io
+import re
 
 
 def concat_adjacent_strs(string):

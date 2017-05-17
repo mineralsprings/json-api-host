@@ -1,7 +1,8 @@
+from glob import glob
+from os.path import exists, join
+from time import sleep
+
 from api_helper import millitime
-from os.path    import exists, join
-from glob       import glob
-from time       import sleep
 
 DIR_LOCKED = "locked"
 DIR_JSON   = "json"

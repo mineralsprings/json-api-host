@@ -2,9 +2,12 @@
 # from api_helper import JSON_FILES, JSON_DIR, JTEMPLATE_DIR
 # import shutil
 # import os
-from os import path
 import json
+from os import path
+
 import jsonschema
+
+
 # import minify
 
 default_objs = {

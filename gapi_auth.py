@@ -1,6 +1,8 @@
-from oauth2client import client, crypt
-import api_helper
 import time as tm
+
+from oauth2client import client, crypt
+
+import api_helper
 
 
 def _validate_gapi_token(token):
@@ -60,4 +62,3 @@ def validate_gapi_key(data):
     except crypt.AppIdentityError as e:
         v = to_error_json(e)
         return v, (400, v)
-
