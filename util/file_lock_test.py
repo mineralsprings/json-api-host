@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # import urllib
-import threading
+from multiprocessing import Process, Lock
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from socketserver import ThreadingMixIn
+# from socketserver import ThreadingMixIn
 
 
 class Server(BaseHTTPRequestHandler):
@@ -11,7 +11,7 @@ class Server(BaseHTTPRequestHandler):
         self.send_response(200)
 
     def do_GET(self):
-        lock = threading.Lock()
+        lock = Lock()
 
         with lock:
             with open("f", "a") as f:
@@ -24,22 +24,48 @@ class Server(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
-        lock = threading.Lock()
+        lock = Lock()
 
-        length = int(self.headers["content-length"])
-
-        msg_bytes = self.rfile.read(length)
+        msg_bytes = self.rfile.read(int(self.headers["content-length"]))
 
         msg = str(msg_bytes, "utf-8")
 
-        with lock:
-            with open("f", "a+") as f:
-                f.write(msg + "\n")
-            with open("f", "r") as f:
-                self.wfile.write(bytes(f.read(20), "utf-8"))
+        if msg == "trunc":
+            with lock:
+                with open("f", "w+") as f:
+                    f.write("truncated\n")
+            # return
+        else:
+            with lock:
+                with open("f", "a+") as f:
+                    f.write(msg + "\n")
+                with open("f", "r") as f:
+                    self.wfile.write(bytes(f.read(20) + "\n", "utf-8"))
 
 
-class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+class MPMixIn:
+    """Mix-in class to handle each request in a new Process."""
+
+    def process_request_thread(self, request, client_address):
+        """Same as in BaseServer but as a thread.
+        In addition, exception handling is done here.
+        """
+        try:
+            self.finish_request(request, client_address)
+        except Exception:
+            self.handle_error(request, client_address)
+        finally:
+            self.shutdown_request(request)
+
+    def process_request(self, request, client_address):
+        """Start a new thread to process the request."""
+        t = Process(target = self.process_request_thread,
+                    args = (request, client_address))
+
+        t.start()
+
+
+class ThreadedHTTPServer(MPMixIn, HTTPServer):
     """Handle requests in a separate thread."""
 
 
