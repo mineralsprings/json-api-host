@@ -77,7 +77,7 @@ def clean_expired():
     ol = len(ANTICSRF_REGISTER)
     ANTICSRF_REGISTER = dict(filter(
         lambda o: o[1] > api_helper.millitime(),
-        ANTICSRF_REGISTER
+        ANTICSRF_REGISTER.items()
     ))
     return abs(len(ANTICSRF_REGISTER) - ol)
 
