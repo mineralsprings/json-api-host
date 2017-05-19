@@ -2,7 +2,7 @@
 
 #function git-autopull {
   while :; do
-    git pull | grep -v "Already up-to-date." | grep -v "fatal: unable to access"
+    git pull 2>/dev/null | grep -v "Already up-to-date."
     now=$(date -u +%s)
     fhn=$((now+500))
     echo "refreshing again at $(date --date="@$fhn" '+%H:%M:%S')"
