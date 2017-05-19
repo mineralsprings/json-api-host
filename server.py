@@ -116,13 +116,13 @@ class Server(BaseHTTPRequestHandler):
                 sent:
 
             HTTP/1.1 200 OK
-            <default headers sent by BaseHTTPServer>
+            Server: BaseHTTP/0.6 Python/3.5.3
+            Date: Fri, 19 May 2017 12:14:12 GMT
             Content-Type: application/json
             Access-Control-Allow-Origin: <client origin or omitted>
             Access-Control-Allow-Methods: HEAD,GET,POST,OPTIONS
             Accept: application/json
             Connection: Close
-
         '''
         self.send_response(resp, message=msg)
 
@@ -202,6 +202,50 @@ class Server(BaseHTTPRequestHandler):
 
     # handle POST based on JSON content
     def do_POST(self):
+        '''
+            Arguments:  none
+            Returns:    None
+            Throws:     anything thrown by methods it calls that is not caught
+                        (does not throw explicity)
+            Effects:    sets headers, and those effects of self.write_str
+
+            Reply to an HTTP POST request.
+
+            Interprets the headers, and request body as UTF-8, and expects the
+                body to be parsable as JSON.
+
+            The following HTTP status codes may be returned:
+            - 200 (OK): the server understood your request and has processed
+                it without errors. The response as JSON follows the headers.
+
+            - 400 (Bad Request): the Content-Type header does not have the
+                value "application/json", the request body cannot be decoded as
+                JSON, the request JSON is missing a required key ("verb",
+                "data", or "time"), or the given "verb" requires a key not
+                present in the "data" object.
+
+            - 401 (Unauthorized): the request JSON is missing the "anticsrf"
+                top-level key even though the "verb" specified would require
+                it, the provided "anticsrf" token was never valid or has
+                expired since being issued (either expliictly, or because an
+                hour elapsed), or the account specified by "gapi_info" does
+                not have permission to perform the requested "verb".
+
+            - 406 (Not Acceptable): the server has processed your request but
+                found that the "time" top-level key is from the future (that
+                is, has a value greater than or equal to the current time in
+                milliseconds since 1 January 1970).
+
+            - 411 (Length Required): the server cannot process your request
+                past the request headers because the remote end never specified
+                the "Content-Length" header.
+
+            - 500 (Internal Server Error): the server cannot process and/or
+                respond to your request because it has encountered an internal
+                error and crashed. This is probably due to a bug inherent in
+                this source code, and could be reported. However, the bug will
+                probably be fixed in less than 24 hours.
+        '''
         # pathobj = urllib.parse.urlparse(self.path)
         # print(pathobj)
         lock = threading.Lock()
@@ -334,6 +378,19 @@ class Server(BaseHTTPRequestHandler):
         self.write_json(reply)
 
     def do_OPTIONS(self):
+        '''
+        Arguments:  none
+        Returns:    None
+        Throws:     anything thrown by self.set_headers
+        Effects:    any side effects of self.set_headers
+
+        Reply to an HTTP OPTIONS request.
+
+        Browsers use the OPTIONS method as a 'preflight check' on
+            XMLHttpRequest POST calls, to determine which headers are sent and
+            to tell whether making such a request would violate the same-origin
+            policy.
+        '''
         self.set_headers(
             200,
             headers=(
@@ -346,6 +403,15 @@ class Server(BaseHTTPRequestHandler):
         )
 
     def exc_verb(self, verbstr, data):
+        '''
+            Arguments:  verbstr (a string) and data (a dict)
+            Returns:    a dict, and a status code (True for 200 OK, or the HTTP
+                        error for an error)
+            Throws:     no
+            Effects:    side effects of functions beginning with "reply_" in
+                        api_helper
+
+        '''
         import re
         attrs       = dir(api_helper)
         replyfun_re = re.compile(r"^reply_[a-z_0-9]+$")
@@ -366,6 +432,16 @@ class Server(BaseHTTPRequestHandler):
         )(data)
 
     def internal_error(self, ctx):
+        '''
+            Arguments:  ctx (a string; context)
+            Returns:    an empty dictionary and the code, -1
+            Throws:     anything thrown by self.set_headers or
+                        self.write_json_error
+            Effects:    any side effects of self.set_headers or
+                        self.write_json_error
+
+            Signal an Internal Server Error because something Bad happened.
+        '''
         self.set_headers(500, msg=ctx)
         self.write_json_error(ctx)
         return {}, -1
