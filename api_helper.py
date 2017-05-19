@@ -66,7 +66,7 @@ def to_error_json(s):
 
 
 def random_key(size):
-    return binascii.hexlify(os.urandom(size)).decode("ascii")
+    return binascii.hexlify(os.urandom(size)).decode("ascii")[size:]
 
 
 # following methods take one argument and return an object{} and a
