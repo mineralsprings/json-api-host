@@ -266,10 +266,19 @@ class Server(BaseHTTPRequestHandler):
         csrf_valid = False
 
         if REQUIRE_ANTICSRF_POST and csrf_required and (csrf_token != ""):
+            import re
             self.set_headers(401)
+
+            # client code can check if responseText["error"].split("(")[1]
+            # starts with EAGAIN and request another token by making another
+            # gapi_validate request
+            is_eagain = "(EAGAIN?)" if re.match(
+                r"^[0-9a-z]{{}}$".format(anticsrf.ANTICSRF_KEYSIZE),
+                csrf_token
+            ) else ""
             self.write_json_error(
-                "JSON body missing key 'anticsrf' but the server is configured"
-                + " to require such a token",
+                "JSON body missing key 'anticsrf' but the server is "
+                + "configured to require such a token " + is_eagain,
                 expl="send the server a gapi_validate request and you will get"
                 + " a valid key"
             )
