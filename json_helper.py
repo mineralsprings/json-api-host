@@ -89,8 +89,8 @@ def validate_json_dir():
     print("All JSON and schemas OK, hooray!")
 
 
-def load_json_db(filename):
-    with open(path.join("json", filename) + ".json", "r") as jfile:
+def load_json_db(name):
+    with open(path.join("json", name) + ".json", "r") as jfile:
         return json.load(jfile)
     # with open(filename, "r") as jfile:
     #     obj = minify.json_minify(jfile.read())
