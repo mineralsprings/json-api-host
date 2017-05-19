@@ -19,24 +19,111 @@ REQUIRE_ANTICSRF_POST = True
 
 
 class Server(BaseHTTPRequestHandler):
+    '''
+        Base class for handling HTTP requests -- the core of the server.
+    '''
 
     protocol_version = "HTTP/1.1"
 
     def enable_dynamic_cors(self):
+        '''
+            Arguments:  none
+            Returns:    None
+            Throws:     KeyError if the remote end never sent an Origin header.
+            Effects:    Sends to the remote end a dynamically generated ACAO
+                        header or none at all.
+
+            A trick needed to allow CORS from multiple, but not just any, other
+            domain.
+
+            The Access-Control-Allow-Origin header can only have one domain as
+            its value, so we test if the remote origin is allowed instead, and
+            send it back as the ACAO value.
+
+            If the remote origin isn't allowed, no ACAO header is sent, and
+            we assume the client implementation will enforce the same-origin
+            policy in that case (it's okay if this assumption falls through).
+        '''
         http_origin = self.headers["origin"]
         if http_origin in api_helper.ALLOW_FRONTEND_DOMAINS:
             self.send_header("Access-Control-Allow-Origin", http_origin)
 
     def write_str(self, data):
+        '''
+            Arguments:  data (a string or other string-like that can be cast to
+                        bytes)
+            Returns:    None
+            Throws:     TypeError if data cannot be encoded to bytes() with
+                        UTF8
+            Effects:    Modifies self.wfile by writing bytes there.
+
+            Shorthand for writing a string back to the remote end.
+        '''
         self.wfile.write(bytes(data, "utf-8"))
 
     def write_json(self, obj):
+        '''
+            Arguments:  obj (a dict)
+            Returns:    None
+            Throws:     json.dumps throws TypeError if the provided argument
+                        is not serialisable to JSON, and anything thrown by
+                        self.write_str
+            Effects:    any side effects of self.write_str
+
+            Take (probably) a Python dictionary and write it to the remote end
+                as JSON.
+
+        '''
         self.write_str(json.dumps(obj))
 
     def write_json_error(self, err, expl=""):
+        '''
+            Arguments:  err (an object) and expl (an object)
+            Returns:    None
+            Throws:     anything thrown by self.write_json
+            Effects:    any side effects of self.write_json
+
+            Take an error descriptor (a string, or other JSON-serialisable
+                object like a number or another dict) and an optional
+                explanation, and write them as a JSON object to the remote end.
+        '''
+
         self.write_json( {"error": err, "explanation": expl} )
 
     def set_headers(self, resp, headers=(), msg=None, close=True):
+        '''
+            Arguments:  resp (an int), headers (a tuple<tuple<string,
+                        string>>), msg (a string), and close (a bool)
+            Returns:    None
+            Throws:     anything thrown by any method it calls (does not throw
+                        its own exceptions)
+            Effects:    Sends headers to the remote end, and calls
+                        self.end_headers, meaning that no more headers can be
+                        sent.
+
+            Sends the appropriate headers given an HTTP response code.
+            Also sends any headers specified in the headers argument.
+            If `headers` evaluates to False, a "Content-Type: application/json"
+                header is sent. Otherwise, the Content-Type is expected to be
+                present in `headers`.
+            An alternate message can be specified, so that instead of "200 OK",
+                "200 Hello" could be sent instead.
+            If close is True, its default value, the header "Connection: Close"
+                is sent. Otherwise, if close evaluates to False, "Connection:
+                keep-alive" is sent. This is not recommended.
+
+            If called with 200 as the first argument, the following headers are
+                sent:
+
+            HTTP/1.1 200 OK
+            <default headers sent by BaseHTTPServer>
+            Content-Type: application/json
+            Access-Control-Allow-Origin: <client origin or omitted>
+            Access-Control-Allow-Methods: HEAD,GET,POST,OPTIONS
+            Accept: application/json
+            Connection: Close
+
+        '''
         self.send_response(resp, message=msg)
 
         if not headers:
@@ -61,10 +148,26 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
+        '''
+            Arguments:  none
+            Returns:    None
+            Throws:     anything thrown by self.set_headers
+            Effects:    any side effects of self.set_headers
+
+            Reply to an HTTP HEAD request, sending the default headers.
+        '''
         self.set_headers(200)
 
     # handle GET, reply unsupported
     def do_GET(self):
+        '''
+            Arguments:  none
+            Returns:    None
+            Throws:     anything thrown by methods called
+            Effects:    any side effects of self.wfile.write
+
+            Reply to an HTTP GET request, probably with 404 or 405.
+        '''
         pathobj = urllib.parse.urlparse(self.path)
         cpath   = pathobj.path[1:]
         qs      = pathobj.query
@@ -211,12 +314,12 @@ class Server(BaseHTTPRequestHandler):
             reply["anticsrf"] = csrf_token
 
         if ok == -1:
+            # the headers were (hopefully) already sent
             return
         elif ok is True:
             self.set_headers(code)
         else:
             self.set_headers(ok[0], msg=ok[1])
-            # else the headers were hopefully already sent
 
         reply["time"]["conn_server"] = api_helper.millitime()
         self.write_json(reply)
@@ -257,8 +360,6 @@ class Server(BaseHTTPRequestHandler):
         self.set_headers(500, msg=ctx)
         self.write_json_error(ctx)
         return {}, -1
-
-    """ NON-HTTP-METHODS """
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
