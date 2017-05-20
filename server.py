@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # adapted from https://gist.github.com/nitaku/10d0662536f37a087e1b
 import json
-import os
+# import os
 import signal
 import sys
 import threading
@@ -12,7 +12,7 @@ from socketserver import ThreadingMixIn
 
 import anticsrf
 import api_helper
-import json_helper
+# import json_helper
 import minify
 
 REQUIRE_ANTICSRF_POST = True
@@ -90,7 +90,7 @@ class Server(BaseHTTPRequestHandler):
 
         self.write_json( {"error": err, "explanation": expl} )
 
-    def set_headers(self, resp, headers=(), msg=None, close=True):
+    def set_headers(self, resp, headers=(), msg=None, close=True, csop=False):
         '''
             Arguments:  resp (an int), headers (a tuple<tuple<string,
                         string>>), msg (a string), and close (a bool)
@@ -133,7 +133,11 @@ class Server(BaseHTTPRequestHandler):
             for h in headers:
                 self.send_header(*h)
 
-        self.enable_dynamic_cors()
+        if csop:
+            self.send_header("Access-Control-Allow-Origin", "*")
+        else:
+            self.enable_dynamic_cors()
+
         self.send_header(
             "Access-Control-Allow-Methods",
             "HEAD,GET,POST,OPTIONS"
@@ -143,7 +147,7 @@ class Server(BaseHTTPRequestHandler):
         if close:
             self.send_header("Connection", "Close")
         else:
-            self.send_header("Connection: keep-alive")
+            self.send_header("Connection", "keep-alive")
 
         self.end_headers()
 
@@ -167,38 +171,60 @@ class Server(BaseHTTPRequestHandler):
             Effects:    any side effects of self.wfile.write
 
             Reply to an HTTP GET request, probably with 404 or 405.
+
+            As yet undocumented: CSOP, Cirque d' Same Origin Policy
         '''
         pathobj = urllib.parse.urlparse(self.path)
         cpath   = pathobj.path[1:]
-        qs      = pathobj.query
-        # print(pathobj, "cpath:", cpath)
+        qs      = urllib.parse.parse_qs(pathobj.query)
+        is_csop = "url" in qs and qs["url"] and qs["url"][0]
 
-        if pathobj.path == "/" and qs == "":
-            self.set_headers(405)
-            self.write_json_error("HTTP GET not fully implemented")
-
-        elif cpath not in json_helper.JSON_FILES and not os.path.exists(cpath):
-            self.send_error(404, message="{}: Not found".format(self.path))
-
-        elif cpath == "favicon.ico":
-            self.set_headers(200, headers=(("Content-Type", "image/x-icon"),))
+        if cpath == "favicon.ico":
+            self.set_headers(200, headers=(["Content-Type", "image/x-icon"],))
             with open(cpath, "rb") as icon:
                 self.wfile.write(icon.read())
 
-        else:
-            self.send_error(404)
-        # TODO: needs a rewrite
-        # elif cpath == "schema.json":
-        #     self.set_headers(200)
-        #     with open(path.join("schemas", cpath), "r") as scma:
-        #         self.write_str(scma.read())
+        elif pathobj.path in ["", "/"] and is_csop:
+            self.set_headers(200, csop=True)
+            import requests, re  # noqa
 
-        # no browsing the JSON files for you!
-        # elif cpath in JSON_FILES:
-        #     if qs == "":
-        #         self.set_headers(200)
-        #         with open(path.join("json", cpath), "r") as jf:
-        #             self.write_str(jf.read())
+            # request URL
+            url   = qs["url"][0]
+            hasprotocol = re.compile(r"^https?:\/\/.+")
+            if not re.match(hasprotocol, url):
+                url = "http://" + url
+
+            # request method (defaults to GET)
+            # ok methods: delete, get, head, patch, post, put
+            # sanitise input to disallow code injection
+            okmtd = re.compile(r"^(delete|get|head|patch|post|put)$")
+            mtd   = re.match(okmtd, qs.get("method", ["get"])[0])
+            if mtd:
+                mtd = mtd.string
+            else:
+                mtd = "get"
+            mtd   = eval("requests." + mtd)
+
+            # request headers
+            # hdrs    = qs.get("header", [])  # get all the uses of the field
+            hdr_obj = {}  # api_helper.parse_encoded_headers(*hdrs)  # decode
+
+            # request body
+            body = qs.get("body", [""])[0]  # only first use
+
+            # perform the request
+            resp = mtd(url, headers=hdr_obj, data=body)
+            self.write_json({
+                "url":     resp.url,
+                "headers": dict(resp.headers)
+            })
+            self.wfile.write(bytes([1, 2, 3, 4, 7, 0, 0, 13, 10, 13, 10]))
+
+            self.wfile.write(resp.content)
+
+        else:
+            self.set_headers(405)
+            self.write_json_error("HTTP GET not fully implemented")
 
     # handle POST based on JSON content
     def do_POST(self):
