@@ -1,4 +1,5 @@
 import api_helper  # from api_helper import millitime, random_key
+import threading
 
 '''
     Very basic anti-cross site request forgery token validation scheme.
@@ -14,7 +15,7 @@ ANTICSRF_REGISTER = {
 
 # time until a token expires
 ANTICSRF_EXPIRY  = 1000 * 60 * 60  # 1 hour
-# length, in bytes of randomness read from /dev/urandom or equivalent, to use
+# length, in bytes of randomness from /dev/urandom or equivalent, to use
 ANTICSRF_KEYSIZE = 42
 
 
@@ -34,7 +35,9 @@ def register_token():
     clean_expired()  # clean at every opportunity
     tok = api_helper.random_key(ANTICSRF_KEYSIZE)
     # tokens expire
-    ANTICSRF_REGISTER[tok] = api_helper.millitime() + ANTICSRF_EXPIRY
+    lock = threading.Lock()
+    with lock:
+        ANTICSRF_REGISTER[tok] = api_helper.millitime() + ANTICSRF_EXPIRY
     return tok
 
 
@@ -55,10 +58,25 @@ def expire_1_token(tok):
             that we can expire old tokens at every possible moment.
     '''
     global ANTICSRF_REGISTER
-    del ANTICSRF_REGISTER[tok]
+    lock = threading.Lock()
+    with lock:
+        del ANTICSRF_REGISTER[tok]
     # also check for other expired tokens
     return 1 + clean_expired()
 
+def expire_all_tokens():
+    '''
+        Arguments:  none
+        Returns:    the total number of removed tokens
+        Throws:     no
+        Effects:    modifies the module-global registry of tokens, clearing it
+    '''
+    ol = len(ANTICSRF_REGISTER)
+    global ANTICSRF_REGISTER
+    lock = threading.Lock()
+    with lock:
+        ANTICSRF_REGISTER = {}
+    return ol
 
 def clean_expired():
     '''
@@ -74,11 +92,13 @@ def clean_expired():
             this operation.
     '''
     global ANTICSRF_REGISTER
+    lock = threading.Lock()
     ol = len(ANTICSRF_REGISTER)
-    ANTICSRF_REGISTER = dict(filter(
-        lambda o: o[1] > api_helper.millitime(),
-        ANTICSRF_REGISTER.items()
-    ))
+    with lock:
+        ANTICSRF_REGISTER = dict(filter(
+            lambda o: o[1] > api_helper.millitime(),
+            ANTICSRF_REGISTER.items()
+        ))
     return abs(len(ANTICSRF_REGISTER) - ol)
 
 

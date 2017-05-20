@@ -371,8 +371,8 @@ class Server(BaseHTTPRequestHandler):
         elif csrf_required and not csrf_given:
             self.set_headers(401)
             self.write_json_error(
-                "JSON body 'data' subkey 'anticsrf' is not registered on the"
-                + " server side",
+                "JSON body key 'anticsrf' is not registered on the"
+                + " server side, or the server has since restarted",
                 expl="send the server a gapi_validate request and you will get"
                 + " a valid key"
             )
