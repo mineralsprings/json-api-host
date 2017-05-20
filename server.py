@@ -93,7 +93,8 @@ class Server(BaseHTTPRequestHandler):
     def set_headers(self, resp, headers=(), msg=None, close=True, csop=False):
         '''
             Arguments:  resp (an int), headers (a tuple<tuple<string,
-                        string>>), msg (a string), and close (a bool)
+                        string>>), msg (a string), close (a bool), csop
+                        (a bool)
             Returns:    None
             Throws:     anything thrown by any method it calls (does not throw
                         its own exceptions)
@@ -111,6 +112,8 @@ class Server(BaseHTTPRequestHandler):
             If close is True, its default value, the header "Connection: Close"
                 is sent. Otherwise, if close evaluates to False, "Connection:
                 keep-alive" is sent. This is not recommended.
+            If csop is True, Access-Control-Allow-Origin is set to *, allowing
+                requests from anywhere.
 
             If called with 200 as the first argument, the following headers are
                 sent:
@@ -138,16 +141,13 @@ class Server(BaseHTTPRequestHandler):
         else:
             self.enable_dynamic_cors()
 
+        self.send_header("Connection", ["keep-alive", "Close"][close] )
+
         self.send_header(
             "Access-Control-Allow-Methods",
             "HEAD,GET,POST,OPTIONS"
         )
         self.send_header("Accept", "application/json")
-
-        if close:
-            self.send_header("Connection", "Close")
-        else:
-            self.send_header("Connection", "keep-alive")
 
         self.end_headers()
 
@@ -172,7 +172,8 @@ class Server(BaseHTTPRequestHandler):
 
             Reply to an HTTP GET request, probably with 404 or 405.
 
-            As yet undocumented: CSOP, Cirque d' Same Origin Policy
+            As yet undocumented: SOP Buster is a workaround for the Same Origin
+                Policy
         '''
         pathobj = urllib.parse.urlparse(self.path)
         cpath   = pathobj.path[1:]
@@ -184,8 +185,13 @@ class Server(BaseHTTPRequestHandler):
             with open(cpath, "rb") as icon:
                 self.wfile.write(icon.read())
 
-        elif pathobj.path in ["", "/"] and is_csop:
+        elif cpath.split(".")[0] in ["sop-buster", "sop_buster", "sopbuster"]:
+            from os.path import join
             self.set_headers(200, csop=True)
+            with open(join("util", "sopbuster.js"), "rb") as js:
+                self.wfile.write(js.read())
+
+        elif pathobj.path in ["", "/"] and is_csop:
             import requests, re  # noqa
 
             # request URL
@@ -203,7 +209,7 @@ class Server(BaseHTTPRequestHandler):
                 mtd = mtd.string
             else:
                 mtd = "get"
-            mtd   = eval("requests." + mtd)
+            request_mtd = eval("requests." + mtd)
 
             # request headers
             # hdrs    = qs.get("header", [])  # get all the uses of the field
@@ -213,12 +219,19 @@ class Server(BaseHTTPRequestHandler):
             body = qs.get("body", [""])[0]  # only first use
 
             # perform the request
-            resp = mtd(url, headers=hdr_obj, data=body)
-            self.write_json({
-                "url":     resp.url,
-                "headers": dict(resp.headers)
-            })
-            self.wfile.write(bytes([1, 2, 3, 4, 7, 0, 0, 13, 10, 13, 10]))
+            resp = request_mtd(url, headers=hdr_obj, data=body)
+
+            self.set_headers(
+                200,
+                csop=True,
+                headers=(
+                    ("Content-Type",    resp.headers["content-type"]),
+                    ("X-Response-Data",
+                        urllib.parse.urlencode(
+                            {"url": resp.url, "headers": dict(resp.headers)})
+                    ), # noqa
+                )
+            )
 
             self.wfile.write(resp.content)
 
