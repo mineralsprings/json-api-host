@@ -1,12 +1,85 @@
 #!/usr/bin/env python3
 import unittest
-import anticsrf2
+import anticsrf2 as anticsrf
+import time
 
 
-class TestAntiCSRF2(unittest.TestCase):
+class TestAntiCSRF(unittest.TestCase):
 
     def test_create(self):
-        self.assertTrue(anticsrf2.token_clerk())
+        t = anticsrf.token_clerk()
+        self.assertTrue(t)
+
+    def test_register(self):
+        t   = anticsrf.token_clerk()
+        tok = t.register_new()
+        self.assertTrue(tok["exp"] - tok["iat"] == t.expire_after)
+        self.assertTrue(len(tok["tok"])         == t.keysize)
+        self.assertTrue(tok["tok"]     in t.current_tokens)
+        self.assertTrue(tok["tok"] not in t.expired_tokens)
+        self.assertTrue(t.current_tokens[ tok["tok"] ] > anticsrf.microtime())
+
+    def test_unregister(self):
+        t    = anticsrf.token_clerk()
+        toka = t.register_new()["tok"]
+        tokb = t.register_new()["tok"]
+        self.assertTrue(len(t.expired_tokens) == 0)
+        self.assertTrue(all(x in t.current_tokens for x in [toka, tokb]))
+
+        ct   = t.unregister(toka, tokb)
+
+        self.assertTrue(all(x not in t.current_tokens for x in [toka, tokb]))
+        self.assertTrue(all(x in t.expired_tokens for x in [toka, tokb]))
+        self.assertEqual(2, ct)
+
+    def test_unregister_all(self):
+        t    = anticsrf.token_clerk()
+        toks = [t.register_new()["tok"] for i in range(10)]
+        ct   = t.unregister_all()
+        self.assertEqual(10, ct)
+
+        self.assertFalse(all(tok in t.current_tokens for tok in toks))
+        self.assertTrue( all(tok in t.expired_tokens for tok in toks))
+
+    def test_clean_expired(self):
+        t    = anticsrf.token_clerk(expire_after=0)
+        toks = [t.register_new(clean=False)["tok"] for i in range(10)]
+        time.sleep(.001)
+        t.clean_expired()
+
+        self.assertFalse(all(tok in t.current_tokens for tok in toks))
+        self.assertTrue( all(tok in t.expired_tokens for tok in toks))
+
+    def test_is_registered(self):
+        t    = anticsrf.token_clerk()
+        toks = [t.register_new()["tok"] for i in range(10)]
+
+        self.assertTrue(all( t.is_registered(tok)  for tok in toks ) )
+        # False + 0 = 0 -- these were never registered
+        self.assertTrue(0 == sum( sum(t.is_registered(junk)) for junk in ["abc", "cat", "def"])) # noqa
+
+    def test_was_registered(self):
+        t    = anticsrf.token_clerk(expire_after=0)
+        toks = [t.register_new(clean=False) for i in range(10)]
+        time.sleep(.001)
+        t.clean_expired()
+
+        # these were registered and their expiry times should be preserved
+        for tok in toks:
+            isreg, expd = t.is_registered(tok["tok"])
+            self.assertFalse(isreg)
+            self.assertTrue( expd == tok["exp"])
+
+    def test_roundtrips(self):
+        from anticsrf2 import token_clerk, keyfun_r
+        t = token_clerk(
+            preset_tokens={"a": 1},
+            expire_after=360,
+            keyfunc=keyfun_r,
+            keysize=2
+        )
+        x = eval(repr(t))
+        self.assertTrue(t.__class__ == x.__class__)
 
 
 def suiteFactory(

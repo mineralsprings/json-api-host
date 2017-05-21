@@ -321,7 +321,7 @@ class Server(BaseHTTPRequestHandler):
             verb, data, time = (
                 message[key] for key in ["verb", "data", "time"]
             )
-            if time["conn_init"] > api_helper.millitime():
+            if time["conn_init"] > api_helper.microtime():
                 raise ValueError
 
         except KeyError as ex:
@@ -413,7 +413,7 @@ class Server(BaseHTTPRequestHandler):
         else:
             self.set_headers(ok[0], msg=ok[1])
 
-        reply["time"]["conn_server"] = api_helper.millitime()
+        reply["time"]["conn_server"] = api_helper.microtime()
         self.write_json(reply)
 
     def do_OPTIONS(self):

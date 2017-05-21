@@ -1,4 +1,4 @@
-import api_helper  # from api_helper import millitime, random_key
+import api_helper  # from api_helper import microtime, random_key
 import threading
 
 '''
@@ -37,7 +37,7 @@ def register_token():
     # tokens expire
     lock = threading.Lock()
     with lock:
-        ANTICSRF_REGISTER[tok] = api_helper.millitime() + ANTICSRF_EXPIRY
+        ANTICSRF_REGISTER[tok] = api_helper.microtime() + ANTICSRF_EXPIRY
     return tok
 
 
@@ -96,7 +96,7 @@ def clean_expired():
     ol = len(ANTICSRF_REGISTER)
     with lock:
         ANTICSRF_REGISTER = dict(filter(
-            lambda o: o[1] > api_helper.millitime(),
+            lambda o: o[1] > api_helper.microtime(),
             ANTICSRF_REGISTER.items()
         ))
     return abs(len(ANTICSRF_REGISTER) - ol)
@@ -124,4 +124,4 @@ def is_registered(tok):
     '''
     clean_expired()  # do this first to prevent replays
     return (tok in ANTICSRF_REGISTER
-            and ANTICSRF_REGISTER[tok] > api_helper.millitime())
+            and ANTICSRF_REGISTER[tok] > api_helper.microtime())
