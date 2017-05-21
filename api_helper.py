@@ -5,7 +5,7 @@ import binascii
 import os
 import time
 
-import anticsrf
+import anticsrf.anticsrf as anticsrf2
 import gapi_auth
 import json_helper
 
@@ -37,8 +37,8 @@ def inttime():
     return round(time.time())
 
 
-def millitime():
-    return round(1000 * time.time())
+def microtime():
+    return round( (10 ** 6) * time.time() )
 
 
 def is_elevated_id(email, hd=None):

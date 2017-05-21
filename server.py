@@ -10,7 +10,7 @@ import urllib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 
-import anticsrf
+import anticsrf.anticsrf as anticsrf2
 import api_helper
 # import json_helper
 import minify

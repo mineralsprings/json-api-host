@@ -2,7 +2,7 @@ from glob import glob
 from os.path import exists, join
 from time import sleep
 
-from api_helper import millitime
+from api_helper import microtime
 
 DIR_LOCKED = "locked"
 DIR_JSON   = "json"
@@ -17,7 +17,7 @@ JSON_FILES = {
 
 
 def queue_write(name, data):
-    now = millitime()
+    now = microtime()
     if name not in JSON_FILES:
         raise OSError("DB does not exist: {}".format(name))
     fname = join(DIR_LOCKED, str(now) + ".write." + name)
@@ -26,7 +26,7 @@ def queue_write(name, data):
 
 
 def queue_read(name):
-    # now = millitime()
+    # now = microtime()
     if name not in JSON_FILES:
         raise OSError("DB does not exist: {}".format(name))
     wait_writers(name)
