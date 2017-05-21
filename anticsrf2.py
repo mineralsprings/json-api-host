@@ -7,15 +7,17 @@ class token_clerk():
         handle registering, validating and expiring antiCSRF tokens
     '''
 
-    def __init__(self):
+    def __init__(self, preset_tokens=None, expire_after=None, keysize=None):
         # currently valid tokens
-        self.current_tokens = {}
+        self.current_tokens = preset_tokens or dict()
         # up to 50 expired tokens
-        self.expired_tokens = {}
+        self.expired_tokens = dict()
         # after how long tokens should expire
-        self.expire_after   = 1000 * 60 * 60
+        self.expire_after   = expire_after or 1000 * 60 * 60
         # key size to use for the tokens
-        self.keysize        = 42  # life, the universe and everything
+        # life, the universe and everything --
+        # a number between 32 (too short) and 64 (too long)
+        self.keysize        = keysize or 42
 
     def register_new(self):
         '''
@@ -31,8 +33,8 @@ class token_clerk():
             Before registering the new token, expired ones are purged.
         '''
         self.clean_expired()
-        tok = random_key(self.keysize)
         now = millitime()
+        tok = random_key(self.keysize)
         exp = now + self.expire_after
         with threading.Lock():
             self.current_tokens[tok] = exp
@@ -45,23 +47,39 @@ class token_clerk():
             Throws:     no
             Effects:    modifies the registry of tokens, clearing it
         '''
-        ol = len(self.current_tokens)
-        lock = threading.Lock()
-        with lock:
+        plen = len(self.current_tokens)
+        with threading.Lock():
             self._log_expired_tokens(self.current_tokens.copy())
-            self.current_tokens = {}
-        return ol
+            self.current_tokens = dict()
+        return plen
 
     def unregister(self, *tokens):
+        '''
+            Arguments:  tokens (strings)
+            Returns:    the total number of removed tokens, after the
+                        clean_expired job is completed and its value added
+            Throws:     anything thrown by clean_expired()
+            Effects:    modifies the module-global registry of tokens, possibly
+                        deleting the given token, and any side effects of
+                        clean_expired()
+
+            Manually expire a token before its 1 hour limit.
+            Tail-called and included in the return value is clean_expired(), so
+                that we can expire old tokens at every possible moment.
+        '''
         expd = self.clean_expired()
         if not tokens or tokens is None:
             return
 
-        self._log_expired_tokens(tokens)
-        self.current_tokens = dict(filter(
-            lambda t: t[0] not in tokens,
-            self.current_tokens.items()
-        ))
+        expire = dict()
+
+        with threading.Lock():
+            for t in tokens:
+                if t in self.current_tokens:
+                    expire.update( { t: self.current_tokens[t] } )
+                    del self.current_tokens[t]
+
+        self._log_expired_tokens(expire)
         return len(tokens) + expd
 
     def clean_expired(self):
@@ -77,11 +95,80 @@ class token_clerk():
             The return value is the difference in length from before and after
                 this operation.
         '''
-        lock = threading.Lock()
-        ol = len(self.current_tokens)
-        with lock:
-            self.current_tokens = dict(filter(
-                lambda o: o[1] > millitime(),
-                self.current_tokens.items()
-            ))
-        return abs(len(self.current_tokens) - ol)
+        plen = len(self.current_tokens)
+
+        if not plen:
+            return
+
+        now = millitime()
+        expire = dict()
+
+        with threading.Lock():
+            for tok, exp in self.current_tokens.items():
+                if now >= exp:
+                    expire.update({tok: exp})
+                    del self.current_tokens[tok]
+
+        self._log_expired_tokens(expire)
+
+        return abs(len(self.current_tokens) - plen)
+
+    def is_registered(self, tok):
+        '''
+            Arguments:  a token (string)
+            Returns:    True or False, based on whether the given token is in
+                        fact registered and valid
+            Throws:     TypeError if the value at ANTICSRF_REGISTER[tok] is not
+                        orderable with int (i.e, not a number), and anything
+                        thrown by clean_expired()
+            Effects:    any side effects of clean_expired()
+
+            Test whether a token is valid (registered).
+            Unpythonically, this function does not let a KeyError be raised if
+                the token is not a key; this is because we clean out expired
+                tokens first, so they no longer exist by the time the condition
+                is tested.
+            While it is possible a token could expire after the call to
+                clean_expired() but before the condition is checked, this is
+                extremely unlikely -- but the code is probably redundant just
+                to be safe anyways.
+        '''
+        self.clean_expired()
+
+        exist = tok in self.current_tokens
+        old   = tok in self.expired_tokens
+
+        if exist:
+            exp = self.current_tokens[tok]
+            return exp > millitime(), exp
+        elif old:
+            old_exp = self.expired_tokens[tok]
+            return False, old_exp
+        else:
+            return False, 0
+
+    def _log_expired_tokens(self, tokens):
+        '''
+            Arguments:  tokens (a dict<string, int>)
+            Returns:    None
+            Throws:     no
+            Effects:    modifies self.expired_tokens, deleting and adding keys
+
+            Record tokens that have expired in another dictionary.
+        '''
+        self._clear_expired_kept(trash=len(tokens))
+        with threading.Lock():
+            self.expired_tokens.update(tokens)
+
+    def _clear_expired_kept(self, trash=30):
+        '''
+            Arguments:  trash (an int)
+            Returns:    None
+            Throws:     no
+            Effects:    modifies self.expired_tokens, deleting keys
+
+            Trash the oldest kept-expired tokens.
+        '''
+        stoks = sorted(self.expired_tokens.items(), key=lambda x: x[1])
+        with threading.Lock():
+            self.expired_tokens = dict(stoks[trash:])

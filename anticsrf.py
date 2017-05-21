@@ -71,8 +71,8 @@ def expire_all_tokens():
         Throws:     no
         Effects:    modifies the module-global registry of tokens, clearing it
     '''
-    ol = len(ANTICSRF_REGISTER)
     global ANTICSRF_REGISTER
+    ol = len(ANTICSRF_REGISTER)
     lock = threading.Lock()
     with lock:
         ANTICSRF_REGISTER = {}
