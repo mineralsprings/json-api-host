@@ -5,7 +5,6 @@ import binascii
 import os
 import time
 
-import anticsrf.anticsrf as anticsrf2
 import gapi_auth
 import json_helper
 
@@ -73,24 +72,28 @@ def random_key(size):
 # status value (True for 200 OK or a tuple like (code, message))
 
 
-def reply_ping(data):
+def reply_ping(data, *args, **kwargs):
     return {
         "pingback": "ping" in data and data["ping"] == "hello",
     }, True
 
 
-def reply_gapi_validate(data):
-    rval = gapi_auth.validate_gapi_key(data)
+def reply_gapi_validate(data, *args, **kwargs):
+    if kwargs["SPOOFING"]:
+        rval = "yeah idc what you sent me i'm a dev server", True
+    else:
+        rval = gapi_auth.validate_gapi_key(data)
+
     return [
         {
-            "anticsrf":  anticsrf.register_token(),
+            "anticsrf":  args[0].register_new(),
             "gapi_info": rval[0]
         },
         rval[1]
     ]
 
 
-def reply_view_orders(data):
+def reply_view_orders(data, *args, **kwargs):
     # map needed keys to default values
     # only update missing keys
     data = dict(
@@ -116,11 +119,11 @@ def reply_view_orders(data):
     return end_func(orders[age])[:num], True
 
 
-def reply_view_menu(data):
+def reply_view_menu(data, *args, **kwargs):
     return json_helper.load_json_db("menu"), True
 
 
-def reply_get_user_limits(data):
+def reply_get_user_limits(data, *args, **kwargs):
     limits = json_helper.load_json_db("limits")
     # user   = None
     # find   = data["gapi_info"]
@@ -128,7 +131,7 @@ def reply_get_user_limits(data):
         pass
 
 
-def reply_edit_menu(data):
+def reply_edit_menu(data, *args, **kwargs):
     if not all(x in data for x in ["gapi_info", "menu_data"]):
         return to_error_json(
             "JSON request to edit the menu missing key"

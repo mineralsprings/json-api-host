@@ -10,12 +10,17 @@ import urllib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 
-import anticsrf.anticsrf as anticsrf2
+import anticsrf.anticsrf as anticsrf
 import api_helper
 # import json_helper
 import minify
 
-REQUIRE_ANTICSRF_POST = True
+DEV_DBG                   = False
+DEV_REQUIRE_ANTICSRF_POST = True
+DEV_SPOOFING_GAPI_REQS    = True
+token_clerk = anticsrf.token_clerk(
+    preset_keys={"ab": 3874563875463487}, keysize=2, keyfunc=anticsrf.keyfun_r
+)
 
 
 class Server(BaseHTTPRequestHandler):
@@ -59,6 +64,8 @@ class Server(BaseHTTPRequestHandler):
 
             Shorthand for writing a string back to the remote end.
         '''
+        if DEV_DBG:
+            print("\nResponse:", data)
         self.wfile.write(bytes(data, "utf-8"))
 
     def write_json(self, obj):
@@ -68,7 +75,7 @@ class Server(BaseHTTPRequestHandler):
             Throws:     json.dumps throws TypeError if the provided argument
                         is not serialisable to JSON, and anything thrown by
                         self.write_str
-            Effects:    any side effects of self.write_str
+            Effects:    inherited
 
             Take (probably) a Python dictionary and write it to the remote end
                 as JSON.
@@ -80,8 +87,8 @@ class Server(BaseHTTPRequestHandler):
         '''
             Arguments:  err (an object) and expl (an object)
             Returns:    None
-            Throws:     anything thrown by self.write_json
-            Effects:    any side effects of self.write_json
+            Throws:     inherited
+            Effects:    inherited
 
             Take an error descriptor (a string, or other JSON-serialisable
                 object like a number or another dict) and an optional
@@ -96,7 +103,7 @@ class Server(BaseHTTPRequestHandler):
                         string>>), msg (a string), close (a bool), csop
                         (a bool)
             Returns:    None
-            Throws:     anything thrown by any method it calls (does not throw
+            Throws:     inherited
                         its own exceptions)
             Effects:    Sends headers to the remote end, and calls
                         self.end_headers, meaning that no more headers can be
@@ -155,8 +162,8 @@ class Server(BaseHTTPRequestHandler):
         '''
             Arguments:  none
             Returns:    None
-            Throws:     anything thrown by self.set_headers
-            Effects:    any side effects of self.set_headers
+            Throws:     inherited
+            Effects:    inherited
 
             Reply to an HTTP HEAD request, sending the default headers.
         '''
@@ -167,8 +174,8 @@ class Server(BaseHTTPRequestHandler):
         '''
             Arguments:  none
             Returns:    None
-            Throws:     anything thrown by methods called
-            Effects:    any side effects of self.wfile.write
+            Throws:     inherited
+            Effects:    inherited
 
             Reply to an HTTP GET request, probably with 404 or 405.
 
@@ -244,7 +251,7 @@ class Server(BaseHTTPRequestHandler):
         '''
             Arguments:  none
             Returns:    None
-            Throws:     anything thrown by methods it calls that is not caught
+            Throws:     inherited
                         (does not throw explicity)
             Effects:    sets headers, and those effects of self.write_str
 
@@ -306,7 +313,8 @@ class Server(BaseHTTPRequestHandler):
 
         msg_str = str(msg_bytes, "utf-8")
         minmsg  = minify.json_minify(msg_str)
-
+        if DEV_DBG:
+            print("\nMinmsg:", msg_str)
         try:
             message = json.loads(minmsg)
         except json.JSONDecodeError as ex:
@@ -339,48 +347,13 @@ class Server(BaseHTTPRequestHandler):
             )
             return
 
-        csrf_token = ""
-        if "anticsrf" in message["data"]:
-            csrf_token = message["data"]["anticsrf"]
-
-        csrf_required = verb not in ["ping", "gapi_validate"]
-        csrf_given    = anticsrf.is_registered(csrf_token)
-
-        csrf_valid = False
-
-        if REQUIRE_ANTICSRF_POST and csrf_required and (csrf_token != ""):
-            import re
-            self.set_headers(401)
-
-            # client code can check if responseText["error"].split("(")[1]
-            # starts with EAGAIN and request another token by making another
-            # gapi_validate request
-            is_eagain = "(EAGAIN?)" if re.match(
-                r"^[0-9a-z]{{}}$".format(anticsrf.ANTICSRF_KEYSIZE),
-                csrf_token
-            ) else ""
-            self.write_json_error(
-                "JSON body missing key 'anticsrf' but the server is "
-                + "configured to require such a token " + is_eagain,
-                expl="send the server a gapi_validate request and you will get"
-                + " a valid key"
-            )
-            print("CSRF token missing")
-            return
-
-        elif csrf_required and not csrf_given:
-            self.set_headers(401)
-            self.write_json_error(
-                "JSON body key 'anticsrf' is not registered on the"
-                + " server side, or the server has since restarted",
-                expl="send the server a gapi_validate request and you will get"
-                + " a valid key"
-            )
-            print("CSRF token junk")
-            return
-
-        else:
-            csrf_valid = True
+        if DEV_DBG:
+            print("\nRequest:", message)
+        csrf_reqd = message["verb"] not in ["ping", "gapi_validate"]
+        if csrf_reqd:
+            csrf_result = self.csrf_validate(message)
+            if not csrf_result:
+                return
 
         reply = dict()
         code  = 200
@@ -402,8 +375,8 @@ class Server(BaseHTTPRequestHandler):
             "time": message["time"]
         }
 
-        if csrf_valid and not csrf_required:
-            reply["anticsrf"] = csrf_token
+        if csrf_reqd and csrf_result:
+            reply["anticsrf"] = message["anticsrf"]
 
         if ok == -1:
             # the headers were (hopefully) already sent
@@ -420,8 +393,8 @@ class Server(BaseHTTPRequestHandler):
         '''
         Arguments:  none
         Returns:    None
-        Throws:     anything thrown by self.set_headers
-        Effects:    any side effects of self.set_headers
+        Throws:     inherited
+        Effects:    inherited
 
         Reply to an HTTP OPTIONS request.
 
@@ -458,32 +431,85 @@ class Server(BaseHTTPRequestHandler):
             lambda s: None is not re.match(replyfun_re, s),
             attrs
         ))
-        # print(list(filattrs))
+
         funcs       = (eval("api_helper.{}".format(fn)) for fn in filattrs)
         verbnames   = ("_".join(fn.split("_")[1:]) for fn in filattrs)
 
         verb_func_dict = dict(zip(verbnames, funcs))
-        # print(verb_func_dict)
+
+        args, kwargs = (None,), {}
+        if verbstr == "gapi_validate":  # special case
+            args   = (token_clerk,)
+            kwargs = {"SPOOFING": True}
+
         return verb_func_dict.get(
             verbstr,
             lambda v:
                 self.internal_error("API error: bad verb: {}".format(verbstr))
-        )(data)
+        )(data, *args, **kwargs)
 
     def internal_error(self, ctx):
         '''
             Arguments:  ctx (a string; context)
             Returns:    an empty dictionary and the code, -1
-            Throws:     anything thrown by self.set_headers or
-                        self.write_json_error
-            Effects:    any side effects of self.set_headers or
-                        self.write_json_error
+            Throws:     no
+            Effects:    inherited
 
             Signal an Internal Server Error because something Bad happened.
         '''
         self.set_headers(500, msg=ctx)
         self.write_json_error(ctx)
         return {}, -1
+
+    def csrf_validate(self, msg):
+        '''
+            Arguments:  msg (a dict<string, object>)
+            Returns:    False for a junk token or some information about the
+                        token for good tokens
+            Throws:     no
+            Effects:    inherited
+
+            Determine whether an anticsrf token as given by the client is
+                valid.
+        '''
+        errexpl = """the server is configured to require a valid unique
+anti-CSRF token with that kind of request; send a
+valid token or get one back after making a valid
+gapi_validate request"""
+
+        inverr = "message body key 'anticsrf' invalid; it "
+
+        client_token    = "anticsrf" in msg and msg["anticsrf"]
+
+        if client_token:
+            # we got a token, need to validate it
+            cltok_info = token_clerk.is_valid(client_token)
+            if cltok_info["reg"]:
+                return cltok_info  # NOTE: EARLY RETURNS HERE
+
+            elif cltok_info["old"]:
+                self.set_headers(401)
+                self.write_json_error(
+                    inverr + " was registered but expired at {}"
+                    .format(cltok_info["exp"]),
+                    expl=errexpl
+                )
+            else:
+                self.set_headers(401)
+                self.write_json_error(
+                    inverr + " was never registered",
+                    expl=errexpl
+                )
+
+        else:
+            # didn't get a token, need to report it
+            self.set_headers(400)
+            self.write_json_error(
+                inverr + " it is missing but required for verb '{}'"
+                .format(msg["verb"]),
+                expl=errexpl
+            )
+        return False
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
@@ -511,7 +537,7 @@ def main():
     '''if len(argv) == 3:
         FRONTEND_DOMAIN = argv[2]'''
 
-    if not REQUIRE_ANTICSRF_POST:
+    if not DEV_REQUIRE_ANTICSRF_POST:
         print(
             "WARNING: Not requiring anti-CSRF tokens in API requests!" +
             " I hope this is a developer instance..."
