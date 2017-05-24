@@ -15,7 +15,7 @@ import minify
 
 DEV_DBG                   = False
 DEV_REQUIRE_ANTICSRF_POST = True
-DEV_SPOOFING_GAPI_REQS    = True
+DEV_SPOOFING_GAPI_REQS    = False
 token_clerk = anticsrf.token_clerk(
     preset_keys=("ab", 3874563875463487), keysize=2, keyfunc=anticsrf.keyfun_r
 )
@@ -282,7 +282,7 @@ class Server(BaseHTTPRequestHandler):
             - 406 (Not Acceptable): the server has processed your request but
                 found that the "time" top-level key is from the future (that
                 is, has a value greater than or equal to the current time in
-                milliseconds since 1 January 1970).
+                microseconds since 1 January 1970).
 
             - 411 (Length Required): the server cannot process your request
                 past the request headers because the remote end never specified
@@ -293,6 +293,11 @@ class Server(BaseHTTPRequestHandler):
                 error and crashed. This is probably due to a bug inherent in
                 this source code, and could be reported. However, the bug will
                 probably be fixed in less than 24 hours.
+
+            - 503 (Service Unavailable): the server is currently handling too
+                many other requests, or is misconfigured and cannot process
+                requests at all. Try your request again shortly, or, if that
+                fails, wait 24 hours for the bug to be fixed.
         '''
         # pathobj = urllib.parse.urlparse(self.path)
         # print(pathobj)
@@ -434,15 +439,15 @@ class Server(BaseHTTPRequestHandler):
             attrs
         ))
 
+        verbnames   = ("_".join( fn.split("_") [1:] )   for fn in filattrs)
         funcs       = (eval("api_helper.{}".format(fn)) for fn in filattrs)
-        verbnames   = ("_".join(fn.split("_")[1:]) for fn in filattrs)
 
         verb_func_dict = dict(zip(verbnames, funcs))
 
         args, kwargs = (None,), {}
         if verbstr == "gapi_validate":  # special case
             args   = (token_clerk,)
-            kwargs = {"SPOOFING": True}
+            kwargs = {"SPOOFING": DEV_SPOOFING_GAPI_REQS}
 
         return verb_func_dict.get(
             verbstr,
