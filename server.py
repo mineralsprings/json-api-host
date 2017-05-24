@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # adapted from https://gist.github.com/nitaku/10d0662536f37a087e1b
 import json
-# import os
 import signal
 import sys
 import threading
@@ -12,15 +11,19 @@ from socketserver import ThreadingMixIn
 
 import anticsrf.anticsrf as anticsrf
 import api_helper
-# import json_helper
 import minify
 
 DEV_DBG                   = False
 DEV_REQUIRE_ANTICSRF_POST = True
 DEV_SPOOFING_GAPI_REQS    = True
 token_clerk = anticsrf.token_clerk(
-    preset_keys={"ab": 3874563875463487}, keysize=2, keyfunc=anticsrf.keyfun_r
+    preset_keys=("ab", 3874563875463487), keysize=2, keyfunc=anticsrf.keyfun_r
 )
+
+
+def dprint(*args, **kwargs):
+    if DEV_DBG:
+        print(*args, **kwargs)
 
 
 class Server(BaseHTTPRequestHandler):
@@ -64,8 +67,7 @@ class Server(BaseHTTPRequestHandler):
 
             Shorthand for writing a string back to the remote end.
         '''
-        if DEV_DBG:
-            print("\nResponse:", data)
+        dprint("\nResponse:", data)
         self.wfile.write(bytes(data, "utf-8"))
 
     def write_json(self, obj):
@@ -81,7 +83,7 @@ class Server(BaseHTTPRequestHandler):
                 as JSON.
 
         '''
-        self.write_str(json.dumps(obj))
+        self.write_str(json.dumps(obj, indent=2))
 
     def write_json_error(self, err, expl=""):
         '''
@@ -313,8 +315,8 @@ class Server(BaseHTTPRequestHandler):
 
         msg_str = str(msg_bytes, "utf-8")
         minmsg  = minify.json_minify(msg_str)
-        if DEV_DBG:
-            print("\nMinmsg:", msg_str)
+        dprint("\nMinmsg:", msg_str)
+
         try:
             message = json.loads(minmsg)
         except json.JSONDecodeError as ex:
@@ -347,8 +349,8 @@ class Server(BaseHTTPRequestHandler):
             )
             return
 
-        if DEV_DBG:
-            print("\nRequest:", message)
+        dprint("\nRequest:", message)
+
         csrf_reqd = message["verb"] not in ["ping", "gapi_validate"]
         if csrf_reqd:
             csrf_result = self.csrf_validate(message)
@@ -472,10 +474,11 @@ class Server(BaseHTTPRequestHandler):
             Determine whether an anticsrf token as given by the client is
                 valid.
         '''
-        errexpl = """the server is configured to require a valid unique
+        errexpl = " ".join(
+            """the server is configured to require a valid unique
 anti-CSRF token with that kind of request; send a
 valid token or get one back after making a valid
-gapi_validate request"""
+gapi_validate request""".split("\n"))
 
         inverr = "message body key 'anticsrf' invalid; it "
 
