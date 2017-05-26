@@ -3,9 +3,12 @@
 #function git-autopull {
   while :; do
     git pull 2>/dev/null | grep -v "Already up-to-date."
+    git submodule init
+    git submodule update --recursive --remote
+    wtime=700
     now=$(date -u +%s)
-    fhn=$((now+500))
+    fhn=$((now+wtime))
     echo "refreshing again at $(date --date="@$fhn" '+%H:%M:%S')"
-    sleep 500
+    sleep $wtime
   done
 #}
