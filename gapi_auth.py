@@ -1,5 +1,3 @@
-import time as tm
-
 from oauth2client import client, crypt
 
 import api_helper
@@ -8,7 +6,10 @@ import api_helper
 def _validate_gapi_token(token):
 
     idinfo = client.verify_id_token(token, api_helper.API_CLIENT_ID)
-    now = tm.time()
+    now = api_helper.microtime()
+
+    for key in ["exp", "iat"]:
+        idinfo[key] *= (10 ** 6)  # to microseconds from seconds
 
     # print("idinfo:", idinfo)
     if idinfo["iss"] not in [
@@ -19,7 +20,6 @@ def _validate_gapi_token(token):
             .format(idinfo["iss"])
         )
 
-    # NOTE: uses INTTIME SECONDS when written to JSON DB must use MILLITIME
     elif ( idinfo["iat"] >= now ) or ( idinfo["exp"] <= now ):
         raise client.AccessTokenCredentialsError(
             "Token has expired or invalid timestamps: issued-at {} expires {}"
@@ -37,6 +37,7 @@ def _validate_gapi_token(token):
     idinfo["is_elevated"] = \
         api_helper.is_elevated_id(idinfo["email"], hd=hd)
     # print(idinfo)
+
     return idinfo
     # Or, if multiple clients access the backend server:
     # idinfo = client.verify_id_token(token, None)
