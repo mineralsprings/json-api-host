@@ -13,11 +13,13 @@ import anticsrf.anticsrf as anticsrf
 import api_helper
 import minify
 
-DEV_DBG                   = False
+DEV_DBG                   = True
 DEV_REQUIRE_ANTICSRF_POST = True
 DEV_SPOOFING_GAPI_REQS    = False
 token_clerk = anticsrf.token_clerk(
-    preset_keys=("ab", 3874563875463487), keysize=2, keyfunc=anticsrf.keyfun_r
+    preset_tokens=( ("ab", 3874563875463487), ),
+    keysize=2,
+    keyfunc=anticsrf.keyfun_r
 )
 
 
@@ -538,22 +540,15 @@ def main():
 
     print("Starting up...")
 
-    '''    if not init_json_db():
-            print("missing template json files, maybe pull or re-clone master")
-            exit(3)
-    '''
-    '''if len(argv) == 3:
-        FRONTEND_DOMAIN = argv[2]'''
-
     if not DEV_REQUIRE_ANTICSRF_POST:
         print(
             "WARNING: Not requiring anti-CSRF tokens in API requests!" +
             " I hope this is a developer instance..."
         )
 
+    num_frontends = len(api_helper.ALLOW_FRONTEND_DOMAINS)
     print(
-        ("Allowing CORS from frontends on " +
-            len(api_helper.ALLOW_FRONTEND_DOMAINS) * "{} ")
+        ("Allowing CORS from frontends on " + num_frontends * "{} ")
         .format(*api_helper.ALLOW_FRONTEND_DOMAINS)
     )
     if len(argv) == 2:
@@ -573,3 +568,19 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("\ncaught CTRL-C, exiting")
+    finally:
+        print(
+            "Trashing antiCSRF tokens: {}"
+            .format(
+                ", ".join(
+                    "{tok} ({exp})"
+                    .format(**locals())
+                    for tok, exp in token_clerk.current_tokens.items()
+                )
+            )
+        )
+        print(
+            "The remote ends will not be informed of this change until they"
+            + " try a request with such a token; perhaps someone should tell"
+            + " them?"
+        )
