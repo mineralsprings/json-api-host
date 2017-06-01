@@ -1,6 +1,7 @@
 from oauth2client import client, crypt
 
 import api_helper
+from server import DEV_VARS
 
 
 def _validate_gapi_token(token):
@@ -20,7 +21,8 @@ def _validate_gapi_token(token):
             .format(idinfo["iss"])
         )
 
-    elif ( idinfo["iat"] >= now ) or ( idinfo["exp"] <= now ):
+    elif ((not DEV_VARS["no_check_timestamp"])
+            and ( idinfo["iat"] >= now ) or ( idinfo["exp"] <= now )):
         raise client.AccessTokenCredentialsError(
             "Token has expired or invalid timestamps: issued-at {} expires {}"
             .format(idinfo["iat"], idinfo["exp"])

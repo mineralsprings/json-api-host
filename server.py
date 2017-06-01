@@ -13,15 +13,25 @@ import anticsrf.anticsrf as anticsrf
 import api_helper
 import minify
 
-DEV_DBG                   = True
-DEV_REQUIRE_ANTICSRF_POST = True
-DEV_SPOOFING_GAPI_REQS    = False
+DEV_DBG                      = True
+DEV_REQUIRE_ANTICSRF_POST    = True
+DEV_SPOOFING_GAPI_REQS       = False
+DEV_DISABLE_TIMESTAMP_CHECKS = True
+
 token_clerk = anticsrf.token_clerk(
     preset_tokens=( ("ab", 3874563875463487), ),
     keysize=2,
-    keyfunc=anticsrf.keyfun_r
+    keyfunc=anticsrf.keyfun_r,
+    expire_after= (3278465347856738456834754 if DEV_DISABLE_TIMESTAMP_CHECKS
+                   else (10 ** 6) * (60 ** 2))
 )
 
+DEV_VARS = {
+    "dbg": DEV_DBG,
+    "no_anticsrf_post": DEV_REQUIRE_ANTICSRF_POST,
+    "no_check_gapi": DEV_SPOOFING_GAPI_REQS,
+    "no_check_timestamp": DEV_DISABLE_TIMESTAMP_CHECKS
+}
 
 def dprint(*args, **kwargs):
     if DEV_DBG:
@@ -338,7 +348,8 @@ class Server(BaseHTTPRequestHandler):
             verb, data, time = (
                 message[key] for key in ["verb", "data", "time"]
             )
-            if time["conn_init"] > api_helper.microtime():
+            if (time["conn_init"] > api_helper.microtime()
+                    and not DEV_DISABLE_TIMESTAMP_CHECKS):
                 raise ValueError
 
         except KeyError as ex:
