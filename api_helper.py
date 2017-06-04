@@ -148,3 +148,15 @@ def reply_edit_menu(data, *args, **kwargs):
     json_helper.register_write("menu", data["menu_data"])
 
     return {"result": "edit registered in queue"}, True
+
+
+def reply_open_order(data, *args, **kwargs):
+    pass
+
+
+def reply_close_order(data, *args, **kwargs):
+    pass
+
+
+def reply_current_orders(data, *args, **kwargs):
+    pass
