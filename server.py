@@ -13,15 +13,16 @@ import anticsrf.anticsrf as anticsrf
 import api_helper
 import minify
 
+
 DEV_DBG                      = True
 DEV_REQUIRE_ANTICSRF_POST    = True
 DEV_SPOOFING_GAPI_REQS       = False
 DEV_DISABLE_TIMESTAMP_CHECKS = True
 
 token_clerk = anticsrf.token_clerk(
-    preset_tokens=( ("ab", 3874563875463487), ),
-    keysize=2,
-    keyfunc=anticsrf.keyfun_r,
+    # preset_tokens=( ("ab", 3874563875463487), ),
+    keysize=42,
+    keyfunc=anticsrf.random_key,
     expire_after= (3278465347856738456834754 if DEV_DISABLE_TIMESTAMP_CHECKS
                    else (10 ** 6) * (60 ** 2))
 )
@@ -32,6 +33,7 @@ DEV_VARS = {
     "no_check_gapi": DEV_SPOOFING_GAPI_REQS,
     "no_check_timestamp": DEV_DISABLE_TIMESTAMP_CHECKS
 }
+
 
 def dprint(*args, **kwargs):
     if DEV_DBG:
