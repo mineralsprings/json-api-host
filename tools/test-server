@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+set -x
+./server.py 9962 &
+pid=$!
+sleep 2
+curl localhost:9962 \
+  -H"Origin: http://localhost:3000" \
+  -H"Content-Type: application/json" \
+  -XPOST -d '{
+    "verb": "ping",
+    "data": {
+      "ping": "hello"
+    },
+      "time": {"conn_init": 1}
+  }'
+code=$?
+sleep 5
+
+trap 'kill -15 $pid; exit $code' EXIT INT TERM ERR
