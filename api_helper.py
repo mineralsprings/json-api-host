@@ -156,7 +156,3 @@ def reply_open_order(data, *args, **kwargs):
 
 def reply_close_order(data, *args, **kwargs):
     pass
-
-
-def reply_current_orders(data, *args, **kwargs):
-    pass

@@ -4,3 +4,6 @@
 [submodule "anticsrf"]
 	path = anticsrf
 	url = https://github.com/catb0t/anticsrf
+[submodule "httplib2shim"]
+	path = httplib2shim
+	url = https://github.com/GoogleCloudPlatform/httplib2shim

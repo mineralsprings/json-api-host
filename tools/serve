@@ -13,4 +13,4 @@ tools/git-autopull &
 pid=$!
 racing=
 
-ls --color=never ./*.py "tools/serve" | entr -r ./server.py 8080 && echo "file changed, stopping and restarting..."
+ls --color=never ./*.py "tools/serve" | entr -r ./server.py 8080
