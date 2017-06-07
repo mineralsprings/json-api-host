@@ -132,7 +132,7 @@ def reply_get_user_limits(data, *args, **kwargs):
 
 
 def reply_edit_menu(data, *args, **kwargs):
-    if not all(x in data for x in ["gapi_info", "menu_data"]):
+    if not all(x in data for x in ["gapi_token", "menu_data"]):
         return to_error_json(
             "JSON request to edit the menu missing key"
         ), (400, "POST request to edit the menu requires an absent key")
@@ -145,7 +145,8 @@ def reply_edit_menu(data, *args, **kwargs):
             + " permission"
         ), (401, "an elevated account is required to edit the menu")
 
-    json_helper.register_write("menu", data["menu_data"])
+    # TODO: write this
+    # json_helper.register_write("menu", data["menu_data"])
 
     return {"result": "edit registered in queue"}, True
 

@@ -11,7 +11,7 @@ from socketserver import ThreadingMixIn
 
 import anticsrf.anticsrf as anticsrf
 import api_helper
-import minify
+# import minify
 
 try:
     import httplib2shim
@@ -339,11 +339,10 @@ class Server(BaseHTTPRequestHandler):
         msg_bytes = self.rfile.read(length)
 
         msg_str = str(msg_bytes, "utf-8")
-        minmsg  = minify.json_minify(msg_str)
-        dprint("\nMinmsg:", msg_str)
+        dprint("\nMessage:", msg_str)
 
         try:
-            message = json.loads(minmsg)
+            message = json.loads(msg_str)
         except json.JSONDecodeError as ex:
             self.set_headers(400)
             self.write_json_error(
@@ -392,9 +391,9 @@ class Server(BaseHTTPRequestHandler):
             try:
                 data, ok = self.exc_verb(verb, data)
             except Exception as e:
-                self.send_error(
+                self.set_headers(
                     500,
-                    message=", ".join(traceback.format_exc().split("\n"))
+                    msg=", ".join(traceback.format_exc().split("\n"))
                 )
 
         reply = {
