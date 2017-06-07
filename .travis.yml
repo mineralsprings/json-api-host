@@ -15,6 +15,6 @@ sudo: required
 install:
   - sudo tools/setup-env
 
-build:
+script:
   - tools/validate_all_json
   - tools/test-server
