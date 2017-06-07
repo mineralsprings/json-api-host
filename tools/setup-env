@@ -5,7 +5,8 @@ if [[ $(id -u) -ne 0 ]]; then
    exit 1
 fi
 
-sudo apt install pip3 entr python3-oauth2client
+sudo apt install python3-pip entr python3-oauth2client
 sudo pip3 install jsonschema certifi httplib2shim
+sudo pip install jsonschema # certifi httplib2shim
 
 echo -e "\nOK"

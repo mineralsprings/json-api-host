@@ -1,6 +1,4 @@
 #!/bin/bash
-set -e
-set -x
 ./server.py 9962 &
 pid=$!
 sleep 2
