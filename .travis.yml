@@ -12,6 +12,7 @@ dist: trusty
 sudo: required
 install:
   - sudo tools/setup-env
+  - python -c "import oauth2client; print(oauth2client.__path__, dir(oauth2client))"
 
 script:
   - tools/test-server
