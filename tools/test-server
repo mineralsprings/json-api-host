@@ -1,5 +1,5 @@
 #!/bin/bash
-port=99621
+port=9962
 ./server.py "$port" &
 pid=$!
 sleep 3
@@ -14,6 +14,7 @@ curl "localhost:$port" \
       "time": {"conn_init": 1}
   }'
 code=$?
-sleep 5
+sleep 3
 
-trap 'kill -15 $pid; exit $code' EXIT INT TERM ERR
+kill -15 $pid
+trap 'exit $code' EXIT INT TERM ERR
