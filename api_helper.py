@@ -14,7 +14,8 @@ API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
 ALLOW_FRONTEND_DOMAINS = [
     "http://localhost:8080",
     "http://localhost:3000",
-    "https://mineralsprings.github.io"
+    "https://mineralsprings.github.io",
+    "https://web-catnipcdn.pagekite.me"
 ]
 
 JSON_FILES = [
@@ -30,10 +31,6 @@ JSON_DIR = "json"
 
 # when a file gets too large to ask python to reasonably open,
 # it should be moved to a new file called filename-<DATE_MOVED>.json.old
-
-
-def inttime():
-    return round(time.time())
 
 
 def microtime():

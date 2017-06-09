@@ -503,7 +503,7 @@ gapi_validate request""".split("\n"))
 
         inverr = "message body key 'anticsrf' invalid; it "
 
-        client_token    = "anticsrf" in msg and msg["anticsrf"]
+        client_token = "anticsrf" in msg and msg["anticsrf"]
 
         if client_token:
             # we got a token, need to validate it
@@ -514,14 +514,14 @@ gapi_validate request""".split("\n"))
             elif cltok_info["old"]:
                 self.set_headers(401)
                 self.write_json_error(
-                    inverr + " was registered but expired at {}"
+                    inverr + "was registered but expired at {}"
                     .format(cltok_info["exp"]),
                     expl=errexpl
                 )
             else:
                 self.set_headers(401)
                 self.write_json_error(
-                    inverr + " was never registered",
+                    inverr + "was never registered",
                     expl=errexpl
                 )
 
@@ -529,7 +529,7 @@ gapi_validate request""".split("\n"))
             # didn't get a token, need to report it
             self.set_headers(400)
             self.write_json_error(
-                inverr + " it is missing but required for verb '{}'"
+                inverr + "is missing but required for verb '{}'"
                 .format(msg["verb"]),
                 expl=errexpl
             )
