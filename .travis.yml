@@ -10,9 +10,7 @@ python:
 dist: trusty
 sudo: required
 install:
-  - sudo tools/setup-env
-  - python --version
-  - python3 --version
+  - sudo tools/setup-env pip
   - python3 -c "from oauth2client import client, crypt"
 
 script:
