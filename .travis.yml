@@ -8,10 +8,10 @@ python:
   - "3.7-dev"
 
 dist: trusty
-sudo: required
+# sudo: required
 install:
-  - sudo tools/setup-env pip
-  - python3 -c "from oauth2client import client, crypt"
+  - tools/setup-env
+  - python -c "from oauth2client import client, crypt"
 
 script:
   - tools/test-server

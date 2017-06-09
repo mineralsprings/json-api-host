@@ -1,11 +1,12 @@
 #!/bin/bash
-if [[ $(id -u) -ne 0 ]]; then
-   echo "This script must be run as root"
-   echo "re-run as \`sudo $0'"
-   exit 1
-fi
+# if [[ $(id -u) -ne 0 ]]; then
+#    echo "This script must be run as root"
+#    echo "re-run as \`sudo $0'"
+#    exit 1
+# fi
 
-sudo apt-get install python3-pip # python3-oauth2client
-sudo ${1:-pip3} install --upgrade jsonschema certifi oauth2client rsa
+# sudo apt-get install python3-pip # python3-oauth2client
+pip3 install --upgrade jsonschema certifi oauth2client rsa
+pip  install --upgrade jsonschema certifi oauth2client rsa
 
 echo -e "\nOK"
