@@ -2,17 +2,18 @@ language: python
 python:
   - "3.4"
   - "3.5"
-  - "3.5-dev" # 3.5 development branch
+  - "3.5-dev"
   - "3.6"
-  - "3.6-dev" # 3.6 development branch
-  - "3.7-dev" # 3.7 development branch
-  - "nightly" # currently points to 3.7-dev
+  - "3.6-dev"
+  - "3.7-dev"
 
 dist: trusty
 sudo: required
 install:
   - sudo tools/setup-env
-  - python -c "import oauth2client; print(oauth2client.__path__, dir(oauth2client))"
+  - python --version
+  - python3 --version
+  - python3 -c "from oauth2client import client, crypt"
 
 script:
   - tools/test-server
