@@ -13,12 +13,8 @@ import anticsrf.anticsrf as anticsrf
 import api_helper
 # import minify
 
-try:
-    import httplib2shim
-    httplib2shim.patch()
-except AttributeError:
-    from httplib2shim import httplib2shim
-    httplib2shim.patch()
+import httplib2shim
+httplib2shim.patch()
 
 DEV_DBG                      = True
 DEV_REQUIRE_ANTICSRF_POST    = True
