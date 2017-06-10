@@ -2,5 +2,5 @@
 for filename in json/*; do
   name=$(python2 -c "print '$filename'.split('.')[0].split('/')[1]")
   echo -e "\n========== doing $name\n"
-  tools/schematool validate "$name" "schema.json"
+  util/schematool validate "$name" "schema.json"
 done
