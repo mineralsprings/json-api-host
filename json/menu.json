@@ -11,6 +11,15 @@
       "options": {
         "add bacon bits": 0.5
       }
+    },
+    {
+      "fullname": "Pizza",
+      "price": 4.5,
+      "comment": "American Grease",
+      "sort_id": 2,
+      "options": {
+        "add sosig": 0.5
+      }
     }
   ]
 }

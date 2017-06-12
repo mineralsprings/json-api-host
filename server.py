@@ -19,7 +19,7 @@ httplib2shim.patch()
 DEV_DBG                      = True
 DEV_REQUIRE_ANTICSRF_POST    = True
 DEV_SPOOFING_GAPI_REQS       = False
-DEV_DISABLE_TIMESTAMP_CHECKS = True
+DEV_DISABLE_TIMESTAMP_CHECKS = False
 
 token_clerk = anticsrf.token_clerk(
     # preset_tokens=( ("ab", 3874563875463487), ),
@@ -174,6 +174,9 @@ class Server(BaseHTTPRequestHandler):
         )
         self.send_header("Accept", "application/json")
 
+        # force HSTS
+        self.send_header("Strict-Transport-Security", "max-age=31536000")
+
         self.end_headers()
 
     def do_HEAD(self):
@@ -279,21 +282,28 @@ class Server(BaseHTTPRequestHandler):
                 body to be parsable as JSON.
 
             The following HTTP status codes may be returned:
+
             - 200 (OK): the server understood your request and has processed
                 it without errors. The response as JSON follows the headers.
 
-            - 400 (Bad Request): the Content-Type header does not have the
-                value "application/json", the request body cannot be decoded as
-                JSON, the request JSON is missing a required key ("verb",
-                "data", or "time"), or the given "verb" requires a key not
-                present in the "data" object.
+            - 400 (Bad Request): the server cannot process your request because
+                - the Content-Type header does not have the value
+                    "application/json",
+                - the request body cannot be decoded as JSON,
+                - the request JSON is missing a required key ("verb", "data",
+                    or "time"), or
+                - the given "verb" requires a key not present in the "data"
+                    object.
 
-            - 401 (Unauthorized): the request JSON is missing the "anticsrf"
-                top-level key even though the "verb" specified would require
-                it, the provided "anticsrf" token was never valid or has
-                expired since being issued (either expliictly, or because an
-                hour elapsed), or the account specified by "gapi_info" does
-                not have permission to perform the requested "verb".
+            - 401 (Unauthorized): the server cannot process your request
+                because
+                - the request JSON is missing the "anticsrf" top-level
+                    key even though the "verb" specified would require it,
+                - the provided "anticsrf" token was never valid or has expired
+                    since being issued (either expliictly, or because an hour
+                    elapsed), or
+                - the account specified by "gapi_info" does not have permission
+                    to perform the requested "verb".
 
             - 406 (Not Acceptable): the server has processed your request but
                 found that the "time" top-level key is from the future (that
