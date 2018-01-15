@@ -13,4 +13,4 @@ util/git-autopull &
 pid=$!
 racing=
 
-ls --color=never ./*.py "util/serve" | entr -r bash -c "notify-send -i terminal 'server restarting' '$(date)'; ./server.py 8080"
+ls --color=never ./*.py "util/serve" | entr -r bash -c "notify-send -i terminal 'server restarting' '$(date)'; ./server.py $1"

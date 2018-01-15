@@ -11,8 +11,10 @@ import json_helper
 API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
     ".apps.googleusercontent.com"
 
+LOCAL_PORT = 9000
+
 ALLOW_FRONTEND_DOMAINS = [
-    "http://localhost:8080",
+    "http://localhost:" + str(LOCAL_PORT),
     "http://localhost:3000",
     "https://mineralsprings.github.io",
     "https://web-catnipcdn.pagekite.me"

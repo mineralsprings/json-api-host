@@ -11,34 +11,24 @@ from socketserver import ThreadingMixIn
 
 import anticsrf.anticsrf as anticsrf
 import api_helper
+import dev_vars
 # import minify
 
 import httplib2shim
 httplib2shim.patch()
 
-DEV_DBG                      = True
-DEV_REQUIRE_ANTICSRF_POST    = True
-DEV_SPOOFING_GAPI_REQS       = False
-DEV_DISABLE_TIMESTAMP_CHECKS = False
-
 token_clerk = anticsrf.token_clerk(
     # preset_tokens=( ("ab", 3874563875463487), ),
     keysize=42,
     keyfunc=anticsrf.random_key,
-    expire_after= (3278465347856738456834754 if DEV_DISABLE_TIMESTAMP_CHECKS
+    expire_after= (3278465347856738456834754
+                   if dev_vars.DEV_DISABLE_TIMESTAMP_CHECKS
                    else (10 ** 6) * (60 ** 2))
 )
 
-DEV_VARS = {
-    "dbg": DEV_DBG,
-    "no_anticsrf_post": DEV_REQUIRE_ANTICSRF_POST,
-    "no_check_gapi": DEV_SPOOFING_GAPI_REQS,
-    "no_check_timestamp": DEV_DISABLE_TIMESTAMP_CHECKS
-}
-
 
 def dprint(*args, **kwargs):
-    if DEV_DBG:
+    if dev_vars.DEV_DBG:
         print(*args, **kwargs)
 
 
@@ -362,7 +352,7 @@ class Server(BaseHTTPRequestHandler):
                 message[key] for key in ["verb", "data", "time"]
             )
             if (time["conn_init"] > api_helper.microtime()
-                    and not DEV_DISABLE_TIMESTAMP_CHECKS):
+                    and not dev_vars.DEV_DISABLE_TIMESTAMP_CHECKS):
                 raise ValueError
 
         except KeyError as ex:
@@ -473,7 +463,7 @@ class Server(BaseHTTPRequestHandler):
         args, kwargs = (None,), {}
         if verbstr == "gapi_validate":  # special case
             args   = (token_clerk,)
-            kwargs = {"SPOOFING": DEV_SPOOFING_GAPI_REQS}
+            kwargs = {"SPOOFING": dev_vars.DEV_SPOOFING_GAPI_REQS}
 
         return verb_func_dict.get(
             verbstr,
@@ -550,7 +540,11 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
 
 
-def run(server_class=ThreadedHTTPServer, handler_class=Server, port=8080):
+def run(
+    server_class=ThreadedHTTPServer,
+    handler_class=Server,
+    port=api_helper.LOCAL_PORT
+  ):
     server_address = ("", port)
     httpd = server_class(server_address, handler_class)
 
@@ -564,7 +558,7 @@ def main():
 
     print("Starting up...")
 
-    if not DEV_REQUIRE_ANTICSRF_POST:
+    if not dev_vars.DEV_REQUIRE_ANTICSRF_POST:
         print(
             "WARNING: Not requiring anti-CSRF tokens in API requests!" +
             " I hope this is a developer instance..."
