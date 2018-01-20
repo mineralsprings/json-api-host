@@ -4,3 +4,6 @@
 [submodule "anticsrf"]
 	path = anticsrf
 	url = https://github.com/catb0t/anticsrf
+[submodule "transactor"]
+	path = transactor
+	url = https://github.com/catb0t/transactor

@@ -12,7 +12,6 @@ from socketserver import ThreadingMixIn
 import anticsrf.anticsrf as anticsrf
 import api_helper
 import dev_vars
-# import minify
 
 import httplib2shim
 httplib2shim.patch()
