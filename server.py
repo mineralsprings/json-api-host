@@ -30,9 +30,10 @@ token_clerk = anticsrf.token_clerk(
 )
 
 
-def dprint(*args, **kwargs):
-    if dev_vars.DEV_DBG:
-        print(*args, **kwargs)
+# def dprint(*args, **kwargs):
+#     return
+#     if dev_vars.DEV_DBG:
+#         print(*args, **kwargs)
 
 
 class Server(BaseHTTPRequestHandler):
@@ -76,7 +77,7 @@ class Server(BaseHTTPRequestHandler):
 
             Shorthand for writing a string back to the remote end.
         '''
-        logger.debug("\nResponse:", data)
+        logger.debug("Response: " + str(data))
         self.wfile.write(bytes(data, "utf-8"))
 
     def write_json(self, obj):
@@ -335,7 +336,7 @@ class Server(BaseHTTPRequestHandler):
         msg_bytes = self.rfile.read(length)
 
         msg_str = str(msg_bytes, "utf-8")
-        logger.debug("\nMessage:", msg_str)
+        logger.debug("Message: " + str(msg_str))
 
         # read the message and convert it into a python dictionary
         try:
@@ -352,7 +353,7 @@ class Server(BaseHTTPRequestHandler):
             verb, data, time = (
                 message[key] for key in ["verb", "data", "time"]
             )
-            if (time["conn_init"] > api_helper.microtime()
+            if (time["conn_init"] > anticsrf.microtime()
                     and not dev_vars.DEV_DISABLE_TIMESTAMP_CHECKS):
                 raise ValueError
 
@@ -371,7 +372,7 @@ class Server(BaseHTTPRequestHandler):
             )
             return
 
-        logger.debug("\nRequest:", message)
+        logger.debug("Request: " + str(message))
 
         csrf_reqd = message["verb"] not in ["ping", "gapi_validate"]
         if csrf_reqd:
@@ -410,7 +411,7 @@ class Server(BaseHTTPRequestHandler):
         else:
             self.set_headers(ok[0], msg=ok[1])
 
-        reply["time"]["conn_server"] = api_helper.microtime()
+        reply["time"]["conn_server"] = anticsrf.microtime()
         self.write_json(reply)
 
     def do_OPTIONS(self):
@@ -591,7 +592,7 @@ def sigterm_handler(signo, stack_frame):
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sigterm_handler)
     signal.signal(signal.SIGINT, sigterm_handler)
-    coloredlogs.install(level="NOTSET", fmt="%(name)s[%(process)d] %(levelname)s %(message)s")
+    coloredlogs.install(level="NOTSET", fmt="%(name)s[%(process)d] %(levelname)s %(message)s")  # noqa
     logger = logging.getLogger("server")
     try:
         main()
