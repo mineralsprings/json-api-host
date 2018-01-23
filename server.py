@@ -558,7 +558,7 @@ def run(
         time.sleep(0)
         threading.Thread(target=f).start()
 
-    logger.info("Starting HTTP server on {}...".format(port))
+    logger.info("Starting HTTP on port {}...".format(port))
 
     httpd.serve_forever()
 

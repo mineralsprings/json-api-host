@@ -3,46 +3,20 @@
 # import shutil
 # import os
 # import json
-# from os import path
+from os import path
 # import jsonschema
-
+import pickledb
 import coloredlogs
 import logging
 import time
 import transactor.transactor as transactor
 
+coloredlogs.install(
+    level="NOTSET",
+    fmt="%(name)s[%(process)d] %(levelname)s %(message)s"
+)
+logger = logging.getLogger("jsondb")
 
-# import minify
-
-default_objs = {
-    "elevated_ids": {
-        "devs": [
-            "thebinaryminer"
-        ],
-        "sau9": [
-            "1742119",
-            "1858067",
-            "d_richardi",
-            "v_schrader"
-        ]
-    },
-
-    "known_users": {
-        # empty
-    },
-
-    "limits": {
-
-    },
-
-    "menu": {
-
-    },
-
-    "orders": {
-
-    }
-}
 
 JSON_FILES = [
     "menu",           # choosable menu entries
@@ -54,59 +28,77 @@ JSON_FILES = [
 ]
 
 JSON_DIR = "json"
+JSON_EXT = ".json"
+
+###############################################################################
+
+
+def _is_stop_iteration(x):
+    return x == "STOPITER"
+
+
+class RF():
+    @staticmethod
+    def dgetall(req):
+        dbname = req[~read_clerk.fields.default_get]
+        db = pickledb.load(path.join(JSON_DIR, dbname) + JSON_EXT, False)
+        return db.dgetall()
+
+
+class WF():
+    pass
+
+
+def read_arbiter(x):
+    req = x[~read_clerk.fields.request]
+    if _is_stop_iteration(req[~read_clerk.fields.STOP_ITERATION]):
+        return "STOPITER", 500
+    fun = RF.__getattribute__(req["action"])
+    return fun(req), 200
+
+
+def write_arbiter(x):
+    req = x[~read_clerk.fields.request]
+    if _is_stop_iteration(req[~read_clerk.fields.STOP_ITERATION]):
+        return "STOPITER", 500
+    fun = RF.__getattribute__(req["action"])
+    return fun(req), 200
+
+###############################################################################
+
 
 read_clerk = transactor.read_clerk()
 write_clerk = transactor.write_clerk()
 
 
+# the read server takes an action and gives back some data
 def read_server():
     logger.info("database reader thread init")
     while True:
         time.sleep(0)
 
-        def arbiter(x):
-            d = (
-                x[~read_clerk.fields.request]
-                [~read_clerk.fields.STOP_ITERATION],
-                x[~read_clerk.fields.request][~read_clerk.fields.nice]
-            )
-            print(*d)
-            return d, 200
-        res = read_clerk.do_serve_request(spin=True, func=arbiter)
-        if res[0] and "STOPITER" == res[0][0]:
-            break
-
-        # etc
-        if not read_clerk.have_waiting()[0]:
-            time.sleep(0)
-        else:
-            logger.debug("serving another read request")
+        res = read_clerk.do_serve_request(spin=True, func=read_arbiter)
+        if res and "STOPITER" == res[0]: break
+        if not read_clerk.have_waiting()[0]: time.sleep(0)
+        # else: logger.debug("serving another read request")
     logger.critical("goodbye, reader")
 
 
+# the write server takes an action and some data and gives only a status
 def write_server():
     logger.info("database writer thread init")
     while True:
         time.sleep(0)
 
-        def arbiter(x):
-            d = (
-                x[~read_clerk.fields.request]
-                [~read_clerk.fields.STOP_ITERATION],
-                x[~read_clerk.fields.request][~read_clerk.fields.nice]
-            )
-            print(*d)
-            return d, 200
-        res = write_clerk.do_serve_request(spin=True, func=arbiter)
-        if res[0] and "STOPITER" == res[0][0]:
-            break
-
-        # etc
-        if not write_clerk.have_waiting()[0]:
-            time.sleep(0)
-        else:
-            logger.debug("serving another write request")
+        res = write_clerk.do_serve_request(spin=True, func=write_arbiter)
+        if res and "STOPITER" == res[0]: break
+        if not write_clerk.have_waiting()[0]: time.sleep(0)
+        # else: logger.debug("serving another write request")
     logger.critical("goodbye, writer")
+
+
+###############################################################################
+# json api follows
 
 
 def kill_all_threads():
@@ -145,16 +137,30 @@ def test_client():
     time.sleep(.5)
     # come back later
     for key in keys:
-        logger.debug(read_clerk.get_response(key), "\t", read_clerk.get_status(key))
+        print(
+            str(read_clerk.get_response(key)) + "\t" +
+            str(read_clerk.get_status(key))
+        )
 
 
-coloredlogs.install(level="NOTSET", fmt="%(name)s[%(process)d] %(levelname)s %(message)s")
-logger = logging.getLogger("jsondb")
+def get_elevated_ids():
+    uuid = transactor.random_key()
+    req = {
+        ~transactor.request_clerk.fields.uuid: uuid,
+        ~transactor.request_clerk.fields.nice: transactor.priority.normal,
+        ~transactor.request_clerk.fields.default_get: "elevated_ids",
+        ~transactor.request_clerk.fields.STOP_ITERATION: "continue",
+        "action": "dgetall"
+    }
+    read_clerk.register_read(req)
+    time.sleep(0)
+    status = read_clerk.get_status(uuid, keep=True)
+    while status is None:
+        time.sleep(0)
+        status = read_clerk.get_status(uuid, keep=True)
 
+    return read_clerk.get_response(uuid), read_clerk.get_status(uuid)
 
-# def get_elevated_ids():
-#     return load_json_db("elevated_ids")
-#
 #
 # def sort_array_by_id(array, sid="sort_id"):
 #     return sorted(array, key=sid)

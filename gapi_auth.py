@@ -2,6 +2,7 @@ from oauth2client import client, crypt
 
 from dev_vars import DEV_VARS
 
+
 def _validate_gapi_token(token):
     import api_helper
     idinfo = client.verify_id_token(token, api_helper.API_CLIENT_ID)
