@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # from os import path
 # import sys
-import binascii
-import os
-import time
-
 import gapi_auth
 import json_helper
 
@@ -19,24 +15,6 @@ ALLOW_FRONTEND_DOMAINS = [
     "https://mineralsprings.github.io",
     # "https://web-catnipcdn.pagekite.me"
 ]
-
-JSON_FILES = [
-    "menu.json",           # choosable menu entries
-    "orders.json",         # every order ever placed
-    "known_users.json",    # all users ever (?)
-    "limits.json",         # rate limiting and banning
-    "elevated_ids.json"    # accounts that can edit the menu
-    # ?
-]
-
-JSON_DIR = "json"
-
-# when a file gets too large to ask python to reasonably open,
-# it should be moved to a new file called filename-<DATE_MOVED>.json.old
-
-
-def microtime():
-    return round( (10 ** 6) * time.time() )
 
 
 def is_elevated_id(email, hd=None):
@@ -61,10 +39,6 @@ def verb_reply(s):
 
 def to_error_json(s):
     return {"error": repr(s)}
-
-
-def random_key(size):
-    return binascii.hexlify(os.urandom(size)).decode("ascii")[size:]
 
 
 # following methods take one argument and return an object{} and a

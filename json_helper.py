@@ -6,6 +6,8 @@
 # from os import path
 # import jsonschema
 
+import coloredlogs
+import logging
 import time
 import transactor.transactor as transactor
 
@@ -58,7 +60,7 @@ write_clerk = transactor.write_clerk()
 
 
 def read_server():
-    print("database reader thread init")
+    logger.info("database reader thread init")
     while True:
         time.sleep(0)
 
@@ -78,12 +80,12 @@ def read_server():
         if not read_clerk.have_waiting()[0]:
             time.sleep(0)
         else:
-            print("serving another read request")
-    print("goodbye, reader")
+            logger.debug("serving another read request")
+    logger.critical("goodbye, reader")
 
 
 def write_server():
-    print("database writer thread init")
+    logger.info("database writer thread init")
     while True:
         time.sleep(0)
 
@@ -103,8 +105,8 @@ def write_server():
         if not write_clerk.have_waiting()[0]:
             time.sleep(0)
         else:
-            print("serving another write request")
-    print("goodbye, writer")
+            logger.debug("serving another write request")
+    logger.critical("goodbye, writer")
 
 
 def kill_all_threads():
@@ -143,7 +145,11 @@ def test_client():
     time.sleep(.5)
     # come back later
     for key in keys:
-        print(read_clerk.get_response(key), "\t", read_clerk.get_status(key))
+        logger.debug(read_clerk.get_response(key), "\t", read_clerk.get_status(key))
+
+
+coloredlogs.install(level="NOTSET", fmt="%(name)s[%(process)d] %(levelname)s %(message)s")
+logger = logging.getLogger("jsondb")
 
 
 # def get_elevated_ids():
@@ -190,5 +196,5 @@ def test_client():
 #
 #
 # if __name__ == '__main__':
-    # write_out_templates()
-    # test_client()
+# write_out_templates()
+# test_client()

@@ -6,7 +6,7 @@
 # fi
 
 apt install entr python3-pip # python3-oauth2client
-pip3 install --upgrade pickledb jsonschema certifi oauth2client rsa httplib2shim
-pip  install --upgrade pickledb jsonschema certifi oauth2client rsa httplib2shim
+pip3 install --upgrade coloredlogs pickledb jsonschema certifi oauth2client rsa httplib2shim
+pip  install --upgrade coloredlogs pickledb jsonschema certifi oauth2client rsa httplib2shim
 
 echo -e "\nOK"

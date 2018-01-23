@@ -8,7 +8,7 @@
     wtime=700
     now=$(date -u +%s)
     fhn=$((now + wtime))
-    echo "refreshing again at $(date --date="@$fhn" '+%H:%M:%S')"
+    echo "[GIT] refreshing again at $(date --date="@$fhn" '+%H:%M:%S')"
     sleep $wtime
   done
 #}

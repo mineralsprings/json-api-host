@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # adapted from https://gist.github.com/nitaku/10d0662536f37a087e1b
+import coloredlogs
+import logging
 import json
 import signal
 import sys
@@ -74,7 +76,7 @@ class Server(BaseHTTPRequestHandler):
 
             Shorthand for writing a string back to the remote end.
         '''
-        dprint("\nResponse:", data)
+        logger.debug("\nResponse:", data)
         self.wfile.write(bytes(data, "utf-8"))
 
     def write_json(self, obj):
@@ -333,7 +335,7 @@ class Server(BaseHTTPRequestHandler):
         msg_bytes = self.rfile.read(length)
 
         msg_str = str(msg_bytes, "utf-8")
-        dprint("\nMessage:", msg_str)
+        logger.debug("\nMessage:", msg_str)
 
         # read the message and convert it into a python dictionary
         try:
@@ -369,7 +371,7 @@ class Server(BaseHTTPRequestHandler):
             )
             return
 
-        dprint("\nRequest:", message)
+        logger.debug("\nRequest:", message)
 
         csrf_reqd = message["verb"] not in ["ping", "gapi_validate"]
         if csrf_reqd:
@@ -550,12 +552,12 @@ def run(
     for f in [
         json_helper.read_server,
         json_helper.write_server,
-        json_helper.test_client
+        # json_helper.test_client
     ]:
         time.sleep(0)
         threading.Thread(target=f).start()
 
-    print("[INFO] Starting HTTP server on {}...".format(port))
+    logger.info("Starting HTTP server on {}...".format(port))
 
     httpd.serve_forever()
 
@@ -563,17 +565,14 @@ def run(
 def main():
     from sys import argv
 
-    print("=== STARTING ===")
+    logger.info("=== STARTING ===")
 
     if not dev_vars.DEV_REQUIRE_ANTICSRF_POST:
-        print(
-            "[WARN] Not requiring anti-CSRF tokens in API requests!"
-            # + " I hope this is a developer instance..."
-        )
+        logger.warning("Not requiring anti-CSRF tokens in API requests!")
 
     num_frontends = len(api_helper.ALLOW_FRONTEND_DOMAINS)
-    print(
-        ("[INFO] DynamiCORS on " + num_frontends * "{} ")
+    logger.info(
+        ("DynamiCORS on " + num_frontends * "{} ")
         .format(*api_helper.ALLOW_FRONTEND_DOMAINS)
     )
     if len(argv) == 2:
@@ -583,7 +582,8 @@ def main():
 
 
 def sigterm_handler(signo, stack_frame):
-    print("\n[INFO] it's all over")
+    print()
+    logger.critical("it's all over")
     json_helper.kill_all_threads()
     sys.exit(0)
 
@@ -591,12 +591,14 @@ def sigterm_handler(signo, stack_frame):
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sigterm_handler)
     signal.signal(signal.SIGINT, sigterm_handler)
+    coloredlogs.install(level="NOTSET", fmt="%(name)s[%(process)d] %(levelname)s %(message)s")
+    logger = logging.getLogger("server")
     try:
         main()
     finally:
-        print("=== SHUTTING DOWN ===\n")
-        print(
-            "[INFO] Trashing antiCSRF tokens: {}"
+        logger.critical("=== SHUTTING DOWN ===")
+        logger.critical(
+            "Dead antiCSRF tokens: {}"
             .format(
                 ", ".join(
                     "{tok} ({exp})"
@@ -604,10 +606,4 @@ if __name__ == "__main__":
                     for tok, exp in token_clerk.current_tokens.items()
                 )
             )
-        )
-        print(
-            "[INFO] The remote ends will not be informed of this change"
-            # "until they"
-            # + " try a request with such a token; perhaps someone should tell"
-            # + " them?"
         )
