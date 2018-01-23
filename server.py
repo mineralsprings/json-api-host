@@ -381,7 +381,7 @@ class Server(BaseHTTPRequestHandler):
         code  = 200
         ok    = True
 
-        with self.lock():
+        with self.lock:
             # should exc_verb throw exceptions?
             try:
                 data, ok = self.exc_verb(verb, data)
