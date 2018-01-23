@@ -3,6 +3,7 @@
 import json
 import signal
 import sys
+import time
 import threading
 import traceback
 import urllib
@@ -11,6 +12,7 @@ from socketserver import ThreadingMixIn
 
 import anticsrf.anticsrf as anticsrf
 import api_helper
+import json_helper
 import dev_vars
 
 import httplib2shim
@@ -47,7 +49,7 @@ class Server(BaseHTTPRequestHandler):
                         header or none at all.
 
             A trick needed to allow CORS from multiple, but not just any, other
-            domain.
+            domains.
 
             The Access-Control-Allow-Origin header can only have one domain as
             its value, so we test if the remote origin is allowed instead, and
@@ -246,7 +248,7 @@ class Server(BaseHTTPRequestHandler):
                     ("X-Response-Data",
                         urllib.parse.urlencode(
                             {"url": resp.url, "headers": dict(resp.headers)})
-                    ), # noqa
+                    ), # noqa leave this
                 )
             )
 
@@ -254,7 +256,7 @@ class Server(BaseHTTPRequestHandler):
 
         else:
             self.set_headers(405)
-            self.write_json_error("HTTP GET not fully implemented")
+            self.write_json_error("HTTP/1.1 GET NotImplemented")
 
     # handle POST based on JSON content
     def do_POST(self):
@@ -314,9 +316,7 @@ class Server(BaseHTTPRequestHandler):
                 requests at all. Try your request again shortly, or, if that
                 fails, wait 24 hours for the bug to be fixed.
         '''
-        # pathobj = urllib.parse.urlparse(self.path)
-        # print(pathobj)
-        lock = threading.Lock()
+        self.lock = threading.Lock()
         # refuse to receive non-json content
         if self.headers["content-type"] != "application/json":
             self.set_headers(400)
@@ -328,7 +328,6 @@ class Server(BaseHTTPRequestHandler):
             self.send_response_only(411)
             return
 
-        # read the message and convert it into a python dictionary
         length = int(self.headers["content-length"])
 
         msg_bytes = self.rfile.read(length)
@@ -336,12 +335,13 @@ class Server(BaseHTTPRequestHandler):
         msg_str = str(msg_bytes, "utf-8")
         dprint("\nMessage:", msg_str)
 
+        # read the message and convert it into a python dictionary
         try:
             message = json.loads(msg_str)
         except json.JSONDecodeError as ex:
             self.set_headers(400)
             self.write_json_error(
-                "can't process POST body as JSON",
+                "can't process HTTP/1.1 POST body as JSON",
                 expl=traceback.format_exc(1)
             )
             return
@@ -381,7 +381,7 @@ class Server(BaseHTTPRequestHandler):
         code  = 200
         ok    = True
 
-        with lock:
+        with self.lock():
             # should exc_verb throw exceptions?
             try:
                 data, ok = self.exc_verb(verb, data)
@@ -547,7 +547,15 @@ def run(
     server_address = ("", port)
     httpd = server_class(server_address, handler_class)
 
-    print("Starting httpd on port {}...".format(port))
+    for f in [
+        json_helper.read_server,
+        json_helper.write_server,
+        json_helper.test_client
+    ]:
+        time.sleep(0)
+        threading.Thread(target=f).start()
+
+    print("[INFO] Starting HTTP server on {}...".format(port))
 
     httpd.serve_forever()
 
@@ -555,17 +563,17 @@ def run(
 def main():
     from sys import argv
 
-    print("Starting up...")
+    print("=== STARTING ===")
 
     if not dev_vars.DEV_REQUIRE_ANTICSRF_POST:
         print(
-            "WARNING: Not requiring anti-CSRF tokens in API requests!" +
-            " I hope this is a developer instance..."
+            "[WARN] Not requiring anti-CSRF tokens in API requests!"
+            # + " I hope this is a developer instance..."
         )
 
     num_frontends = len(api_helper.ALLOW_FRONTEND_DOMAINS)
     print(
-        ("Allowing CORS from frontends on " + num_frontends * "{} ")
+        ("[INFO] DynamiCORS on " + num_frontends * "{} ")
         .format(*api_helper.ALLOW_FRONTEND_DOMAINS)
     )
     if len(argv) == 2:
@@ -574,20 +582,21 @@ def main():
         run()
 
 
-def sigterm_handler(_signo, _stack_frame):
-    print("Shutting down...\n")
+def sigterm_handler(signo, stack_frame):
+    print("\n[INFO] it's all over")
+    json_helper.kill_all_threads()
     sys.exit(0)
 
 
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGINT, sigterm_handler)
     try:
         main()
-    except KeyboardInterrupt:
-        print("\ncaught CTRL-C, exiting")
     finally:
+        print("=== SHUTTING DOWN ===\n")
         print(
-            "Trashing antiCSRF tokens: {}"
+            "[INFO] Trashing antiCSRF tokens: {}"
             .format(
                 ", ".join(
                     "{tok} ({exp})"
@@ -597,7 +606,8 @@ if __name__ == "__main__":
             )
         )
         print(
-            "The remote ends will not be informed of this change until they"
-            + " try a request with such a token; perhaps someone should tell"
-            + " them?"
+            "[INFO] The remote ends will not be informed of this change"
+            # "until they"
+            # + " try a request with such a token; perhaps someone should tell"
+            # + " them?"
         )

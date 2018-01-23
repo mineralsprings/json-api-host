@@ -17,7 +17,7 @@ ALLOW_FRONTEND_DOMAINS = [
     "http://localhost:" + str(LOCAL_PORT),
     "http://localhost:3000",
     "https://mineralsprings.github.io",
-    "https://web-catnipcdn.pagekite.me"
+    # "https://web-catnipcdn.pagekite.me"
 ]
 
 JSON_FILES = [
