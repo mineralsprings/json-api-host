@@ -3,6 +3,8 @@
 # import sys
 import gapi_auth
 import json_helper
+import coloredlogs
+import logging
 
 API_CLIENT_ID = "502024288218-4h8it97gqlkmc0ttnr9ju3hpke8gcatj" + \
     ".apps.googleusercontent.com"
@@ -16,10 +18,19 @@ ALLOW_FRONTEND_DOMAINS = [
     # "https://web-catnipcdn.pagekite.me"
 ]
 
+coloredlogs.install(
+    level="NOTSET",
+    fmt="%(name)s[%(process)d] %(levelname)s %(message)s"
+)
+logger = logging.getLogger("api_helper")
+
 
 def is_elevated_id(email, hd=None):
     idn, dom = email.split("@")
-    el_ids   = json_helper.get_elevated_ids()
+    el_ids, status = json_helper.get_elevated_ids()
+    if status == -1:
+        return {}
+
     # print(repr(el_ids["devs"]) + "\n", id, dom)
 
     return (

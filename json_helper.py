@@ -34,15 +34,14 @@ JSON_EXT = ".json"
 
 
 def _is_stop_iteration(x):
-    return x == "STOPITER"
+    return x[~read_clerk._field.STOP_ITERATION] == "STOPITER"
 
 
 class RF():
-    @staticmethod
     def dgetall(req):
-        dbname = req[~read_clerk.fields.default_get]
+        dbname = req[~read_clerk._field.default_get]
         db = pickledb.load(path.join(JSON_DIR, dbname) + JSON_EXT, False)
-        return db.dgetall()
+        return db.dgetall(dbname)
 
 
 class WF():
@@ -50,19 +49,21 @@ class WF():
 
 
 def read_arbiter(x):
-    req = x[~read_clerk.fields.request]
-    if _is_stop_iteration(req[~read_clerk.fields.STOP_ITERATION]):
+    req = x[~read_clerk._field.request]
+    if _is_stop_iteration(req):
         return "STOPITER", 500
-    fun = RF.__getattribute__(req["action"])
-    return fun(req), 200
+    fun = RF.__getattribute__(RF, req["action"])
+    res = fun(req)
+    return res, 200
 
 
 def write_arbiter(x):
-    req = x[~read_clerk.fields.request]
-    if _is_stop_iteration(req[~read_clerk.fields.STOP_ITERATION]):
+    req = x[~read_clerk._field.request]
+    if _is_stop_iteration(req):
         return "STOPITER", 500
-    fun = RF.__getattribute__(req["action"])
-    return fun(req), 200
+    fun = WF.__getattribute__(WF, req["action"])
+    res = fun(req)
+    return res, 200
 
 ###############################################################################
 
@@ -70,14 +71,16 @@ def write_arbiter(x):
 read_clerk = transactor.read_clerk()
 write_clerk = transactor.write_clerk()
 
+DB_THREAD_YIELD = .4
+
 
 # the read server takes an action and gives back some data
 def read_server():
     logger.info("database reader thread init")
     while True:
-        time.sleep(0)
+        time.sleep(DB_THREAD_YIELD)
 
-        res = read_clerk.do_serve_request(spin=True, func=read_arbiter)
+        res = read_clerk.do_serve_request(spin=False, func=read_arbiter)
         if res and "STOPITER" == res[0]: break
         if not read_clerk.have_waiting()[0]: time.sleep(0)
         # else: logger.debug("serving another read request")
@@ -88,9 +91,9 @@ def read_server():
 def write_server():
     logger.info("database writer thread init")
     while True:
-        time.sleep(0)
+        time.sleep(DB_THREAD_YIELD)
 
-        res = write_clerk.do_serve_request(spin=True, func=write_arbiter)
+        res = write_clerk.do_serve_request(spin=False, func=write_arbiter)
         if res and "STOPITER" == res[0]: break
         if not write_clerk.have_waiting()[0]: time.sleep(0)
         # else: logger.debug("serving another write request")
@@ -103,15 +106,15 @@ def write_server():
 
 def kill_all_threads():
     req = {
-        ~read_clerk.fields.uuid: transactor.random_key(10),
+        ~read_clerk._field.uuid: transactor.random_key(10),
         # low priority causes other requests to finish first
         # unfortunately it means that it may never stop if we never run out of
         # higher priorities
         # but using an urgent priority or a different sorting strategy risks
         # not completing some requests
-        ~read_clerk.fields.nice: transactor.priority.normal,
-        ~read_clerk.fields.default_get: "",
-        ~read_clerk.fields.STOP_ITERATION: "STOPITER"  # noqa
+        ~read_clerk._field.nice: transactor.priority.normal,
+        ~read_clerk._field.default_get: "",
+        ~read_clerk._field.STOP_ITERATION: "STOPITER"  # noqa
     }
     for c in [read_clerk, write_clerk]:
         time.sleep(0)
@@ -128,10 +131,10 @@ def test_client():
         keys += transactor.random_key(10),
         nice = random.choice(list(transactor.priority))
         read_clerk.register_read({
-            ~read_clerk.fields.uuid: keys[i],
-            ~read_clerk.fields.nice: nice,
-            ~read_clerk.fields.default_get: "users",
-            ~read_clerk.fields.STOP_ITERATION: "continue"  # noqa
+            ~read_clerk._field.uuid: keys[i],
+            ~read_clerk._field.nice: nice,
+            ~read_clerk._field.default_get: "users",
+            ~read_clerk._field.STOP_ITERATION: "continue"  # noqa
         })
         time.sleep(0)
     time.sleep(.5)
@@ -146,10 +149,10 @@ def test_client():
 def get_elevated_ids():
     uuid = transactor.random_key()
     req = {
-        ~transactor.request_clerk.fields.uuid: uuid,
-        ~transactor.request_clerk.fields.nice: transactor.priority.normal,
-        ~transactor.request_clerk.fields.default_get: "elevated_ids",
-        ~transactor.request_clerk.fields.STOP_ITERATION: "continue",
+        ~transactor.request_clerk._field.uuid: uuid,
+        ~transactor.request_clerk._field.nice: transactor.priority.normal,
+        ~transactor.request_clerk._field.default_get: "elevated_ids",
+        ~transactor.request_clerk._field.STOP_ITERATION: "continue",
         "action": "dgetall"
     }
     read_clerk.register_read(req)

@@ -2,11 +2,13 @@ from oauth2client import client, crypt
 
 from dev_vars import DEV_VARS
 
+from anticsrf import anticsrf
+
 
 def _validate_gapi_token(token):
     import api_helper
     idinfo = client.verify_id_token(token, api_helper.API_CLIENT_ID)
-    now = api_helper.microtime()
+    now = anticsrf.microtime()
 
     for key in ["exp", "iat"]:
         idinfo[key] *= (10 ** 6)  # to microseconds from seconds

@@ -592,7 +592,10 @@ def sigterm_handler(signo, stack_frame):
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sigterm_handler)
     signal.signal(signal.SIGINT, sigterm_handler)
-    coloredlogs.install(level="NOTSET", fmt="%(name)s[%(process)d] %(levelname)s %(message)s")  # noqa
+    coloredlogs.install(
+        level="NOTSET",
+        fmt="%(name)s[%(process)d] %(levelname)s %(message)s"
+    )
     logger = logging.getLogger("server")
     try:
         main()
