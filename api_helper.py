@@ -26,20 +26,22 @@ logger = logging.getLogger("api_helper")
 
 
 def is_elevated_id(email, hd=None):
+    from pprint import pprint
     idn, dom = email.split("@")
     el_ids, status = json_helper.get_elevated_ids()
     if status == -1:
-        return {}
-
-    # print(repr(el_ids["devs"]) + "\n", id, dom)
+        return False
+    pprint(el_ids)
 
     return (
         (
-            idn in el_ids["devs"] and (dom == "gmail.com")
+            idn in el_ids["devs"]
+            and (dom == "gmail.com")
         )
         or (
-            (idn in el_ids["sau9"] and (dom == "sau9.org"))
-            and (hd is not None and hd == "sau9.org")
+            idn in el_ids["sau9"]
+            and (dom == "sau9.org")
+            and hd == "sau9.org"
         )
     )
 

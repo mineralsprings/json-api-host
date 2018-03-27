@@ -41,7 +41,8 @@ class RF():
     def dgetall(req):
         dbname = req[~read_clerk._field.default_get]
         db = pickledb.load(path.join(JSON_DIR, dbname) + JSON_EXT, False)
-        return db.dgetall(dbname)
+        db_keys = db.getall()
+        return {key: db.dgetall(key) for key in db_keys}
 
 
 class WF():
@@ -119,10 +120,11 @@ def kill_all_threads():
     for c in [read_clerk, write_clerk]:
         time.sleep(0)
         c.impl_register_request(req)
-
+    # dead threads tell no tales
 
 # when a file gets too large to ask python to reasonably open,
 # it should be moved to a new file called filename-<DATE_MOVED>.json.old
+
 
 def test_client():
     import random
@@ -137,7 +139,7 @@ def test_client():
             ~read_clerk._field.STOP_ITERATION: "continue"  # noqa
         })
         time.sleep(0)
-    time.sleep(.5)
+    time.sleep(.2)
     # come back later
     for key in keys:
         print(

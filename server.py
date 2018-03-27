@@ -573,8 +573,8 @@ def main():
 
     num_frontends = len(api_helper.ALLOW_FRONTEND_DOMAINS)
     logger.info(
-        ("DynamiCORS on " + num_frontends * "{} ")
-        .format(*api_helper.ALLOW_FRONTEND_DOMAINS)
+        ("DynamiCORS on ({}) " + num_frontends * "{} ")
+        .format(num_frontends, *api_helper.ALLOW_FRONTEND_DOMAINS)
     )
     if len(argv) == 2:
         run(port=int(argv[1]))
