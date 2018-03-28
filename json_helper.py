@@ -148,12 +148,12 @@ def test_client():
         )
 
 
-def get_elevated_ids():
+def all_entires(db_name):
     uuid = transactor.random_key()
     req = {
         ~transactor.request_clerk._field.uuid: uuid,
         ~transactor.request_clerk._field.nice: transactor.priority.normal,
-        ~transactor.request_clerk._field.default_get: "elevated_ids",
+        ~transactor.request_clerk._field.default_get: db_name,
         ~transactor.request_clerk._field.STOP_ITERATION: "continue",
         "action": "dgetall"
     }
@@ -165,6 +165,10 @@ def get_elevated_ids():
         status = read_clerk.get_status(uuid, keep=True)
 
     return read_clerk.get_response(uuid), read_clerk.get_status(uuid)
+
+
+def get_elevated_ids():
+    return all_entires("elevated_ids")
 
 #
 # def sort_array_by_id(array, sid="sort_id"):

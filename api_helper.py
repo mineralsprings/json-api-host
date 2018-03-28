@@ -28,7 +28,7 @@ logger = logging.getLogger("api_helper")
 def is_elevated_id(email, hd=None):
     from pprint import pprint
     idn, dom = email.split("@")
-    el_ids, status = json_helper.get_elevated_ids()
+    el_ids, status = json_helper.all_entires("elevated_ids")
     if status == -1:
         return False
     pprint(el_ids)
@@ -100,17 +100,17 @@ def reply_view_orders(data, *args, **kwargs):
     )
     num    = int(float(data["count"]))  # noqa to allow number passed as string or float or int
     age    = "cur_orders" if data["age"] == "new" else "old_orders"
-    orders = json_helper.load_json_db("orders")
+    orders = json_helper.all_entires("orders")
 
     return end_func(orders[age])[:num], True
 
 
 def reply_view_menu(data, *args, **kwargs):
-    return json_helper.load_json_db("menu"), True
+    return json_helper.all_entires("menu"), True
 
 
 def reply_get_user_limits(data, *args, **kwargs):
-    limits = json_helper.load_json_db("limits")
+    limits = json_helper.all_entires("limits")
     # user   = None
     # find   = data["gapi_info"]
     for uobj in limits:

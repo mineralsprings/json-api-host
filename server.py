@@ -374,7 +374,8 @@ class Server(BaseHTTPRequestHandler):
 
         logger.debug("Request: " + str(message))
 
-        csrf_reqd = message["verb"] not in ["ping", "gapi_validate"]
+        csrf_reqd = (dev_vars.DEV_REQUIRE_ANTICSRF_POST
+                        and message["verb"] not in ["ping", "gapi_validate"])
         if csrf_reqd:
             csrf_result = self.csrf_validate(message)
             if not csrf_result:

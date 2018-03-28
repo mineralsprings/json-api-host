@@ -1,5 +1,5 @@
 DEV_DBG                      = True
-DEV_REQUIRE_ANTICSRF_POST    = True
+DEV_REQUIRE_ANTICSRF_POST    = False
 DEV_SPOOFING_GAPI_REQS       = False
 DEV_DISABLE_TIMESTAMP_CHECKS = False
 
