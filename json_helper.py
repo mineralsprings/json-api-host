@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# from api_helper import JSON_FILES, JSON_DIR, JTEMPLATE_DIR
-# import shutil
-# import os
-# import json
 from os import path
 # import jsonschema
 import pickledb
@@ -15,7 +11,7 @@ coloredlogs.install(
     level="NOTSET",
     fmt="%(name)s[%(process)d] %(levelname)s %(message)s"
 )
-logger = logging.getLogger("jsondb")
+logger = logging.getLogger("json_helper")
 
 
 JSON_FILES = [
@@ -93,11 +89,9 @@ def write_server():
     logger.info("database writer thread init")
     while True:
         time.sleep(DB_THREAD_YIELD)
-
         res = write_clerk.do_serve_request(spin=False, func=write_arbiter)
         if res and "STOPITER" == res[0]: break
         if not write_clerk.have_waiting()[0]: time.sleep(0)
-        # else: logger.debug("serving another write request")
     logger.critical("goodbye, writer")
 
 

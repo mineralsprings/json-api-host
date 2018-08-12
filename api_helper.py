@@ -26,19 +26,16 @@ logger = logging.getLogger("api_helper")
 
 
 def is_elevated_id(email, hd=None):
-    from pprint import pprint
     idn, dom = email.split("@")
     el_ids, status = json_helper.all_entires("elevated_ids")
     if status == -1:
         return False
-    pprint(el_ids)
 
     return (
         (
             idn in el_ids["devs"]
             and (dom == "gmail.com")
-        )
-        or (
+        ) or (
             idn in el_ids["sau9"]
             and (dom == "sau9.org")
             and hd == "sau9.org"
@@ -98,7 +95,7 @@ def reply_view_orders(data, *args, **kwargs):
         if data["from_end"] == "head"
         else lambda x: list(reversed(x))
     )
-    num    = int(float(data["count"]))  # noqa to allow number passed as string or float or int
+    num    = int(float(data["count"]))  # noqa to allow number as string or float or int
     age    = "cur_orders" if data["age"] == "new" else "old_orders"
     orders = json_helper.all_entires("orders")
 

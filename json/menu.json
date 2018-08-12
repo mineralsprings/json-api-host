@@ -1,25 +1,25 @@
 {
   "is_buffet": false,
-  "effective": 4524452454,
-  "expires": 124325512342,
+  "effective": 4524452454222,
+  "expires": 12432551234222,
   "item_list": [
     {
       "fullname": "Chicken Soup",
       "price": 1.3,
-      "comment": "Homestyle and cheap, what more could you want?",
+      "comment": "Homestyle comfort",
       "sort_id": 1,
-      "options": {
-        "add bacon bits": 0.5
-      }
+      "options": [
+        {"name": "more pasta", "price": 0.5, "sort_id": 1 }
+      ]
     },
     {
       "fullname": "Pizza",
       "price": 4.5,
-      "comment": "American Grease",
+      "comment": "American grease",
       "sort_id": 2,
-      "options": {
-        "add sosig": 0.5
-      }
+      "options": [
+        { "name": "add sosig", "price": 0.5, "sort_id": 1 }
+      ]
     }
   ]
 }
